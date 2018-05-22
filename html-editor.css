@@ -1,0 +1,265 @@
+div.html-editor {
+    display: inline-block;
+    border: inherit;
+    background-color: inherit;
+}
+
+div.html-editor div.editable, div.html-editor textarea { 
+    border: none; 
+    overflow: auto;
+    padding: 2px;
+    margin: 0;
+    font-family: verdana,sans-serif;
+    font-size: 10pt;
+    border-width: 0;
+    color: #404040;
+    background-color: #FFFFFF;
+}
+
+
+
+div.html-editor div.toolbar {
+    font: inherit;
+    display: inline-block;
+    background-color: transparent;
+    margin: 2px 0 0 0;
+}
+
+div.html-editor div.toolbar ul {
+    margin: 1px;
+    margin-left: 4px;
+    padding: 1px;
+    float: left;
+}
+
+div.html-editor div.toolbar ul li {
+    list-style: none;
+    float: left;
+    padding: 0;
+    margin: 0;
+    margin-top: 5px;
+    height: 20px;
+    text-align: center;
+}
+
+div.html-editor div.toolbar ul li select { font-weight: normal; }
+
+div.html-editor div.toolbar ul li button {
+    width: 21px;
+    height: 100%;
+    border: 0;
+    display: block;
+    border: none;
+    cursor: pointer;
+    padding: 1px;
+    background-repeat: no-repeat;
+}
+
+div.html-editor div.toolbar ul li button.highlighted {
+    border: solid 1px #aaa;
+    padding: 0;
+}
+
+div.html-editorColorPickerMenu {
+    border: solid 1px #bbb;
+    background-color: #ddd;
+    width: 112px;
+}
+
+div.html-editorColorPickerMenu div {
+    float: left;
+    margin: 2px;
+    width: 12px;
+    height: 14px;
+}
+
+div.html-editorColorPickerMenu div:hover {
+    margin: 0;
+    border: dotted 2px black;
+}
+
+div.html-editorColorPickerMenu div.automatic {
+    width: 104px;
+    height: auto;
+    padding: 2px;
+}
+
+div.html-editorColorPickerMenu div.automatic div {
+    margin: 2px;
+    width: 12px;
+    height: 14px;
+    border: solid 1px black;
+}
+
+div.html-editor div.toolbar ul li.seperator {
+    width: 13px;
+    background: url(buttons/images/separator.gif);
+}
+
+div.html-editor div.toolbar ul li button.undo { background: url(buttons/images/undo-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.undo:active { background: url(buttons/images/undo-active.gif) }
+
+div.html-editor div.toolbar ul li button.redo { background: url(buttons/images/redo-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.redo:active { background: url(buttons/images/redo-active.gif) }
+
+div.html-editor div.toolbar ul li button.bold { background: url(buttons/images/formatbold-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.bold.active { background: url(buttons/images/formatbold-active.gif) }
+
+div.html-editor div.toolbar ul li button.italic { background: url(buttons/images/formatitalic-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.italic.active { background: url(buttons/images/formatitalic-active.gif) }
+
+div.html-editor div.toolbar ul li button.underline { background: url(buttons/images/formatunderline-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.underline.active { background: url(buttons/images/formatunderline-active.gif) }
+
+div.html-editor div.toolbar ul li button.strikethrough { background: url(buttons/images/formatstrike-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.strikethrough.active { background: url(buttons/images/formatstrike-active.gif) }
+
+div.html-editor div.toolbar ul li button.subscript { background: url(buttons/images/formatsub-inactive.gif); }
+
+div.html-editor div.toolbar ul li button.subscript.active { background: url(buttons/images/formatsub-active.gif) }
+
+div.html-editor div.toolbar ul li button.superscript { background: url(buttons/images/formatsup-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.superscript.active { background: url(buttons/images/formatsup-active.gif) }
+
+div.html-editor div.toolbar ul li button.formatltr { background: url(buttons/images/formatltr-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.formatltr.active { background: url(buttons/images/formatltr-active.gif) }
+
+div.html-editor div.toolbar ul li button.formatrtl { background: url(buttons/images/formatrtl-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.formatrtl.active { background: url(buttons/images/formatrtl-active.gif) }
+
+div.html-editor div.toolbar ul li button.forecolor {
+    background: url(buttons/images/forecolor-inactive.gif);
+    background-repeat: no-repeat;
+}
+
+div.html-editor div.toolbar ul li button.forecolor:active { background: url(buttons/images/forecolor-active.gif); }
+
+div.html-editor div.toolbar ul li button.selector {
+    background: url(buttons/images/selector-inactive.gif);
+    background-repeat: no-repeat;
+    width: 10px;
+}
+div.html-editor div.toolbar ul li button.selector:active {
+    background: url(buttons/images/selector-active.gif);
+}
+
+
+div.html-editor div.toolbar ul li button.resetforecolor { background: url(buttons/images/colorfgclear-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.resetforecolor:active { background: url(buttons/images/colorfgclear-active.gif) }
+
+div.html-editor div.toolbar ul li button.backcolor { 
+    background: url(buttons/images/backcolor-inactive.gif);
+    background-repeat: no-repeat; 
+}
+
+div.html-editor div.toolbar ul li button.backcolor:active { background: url(buttons/images/backcolor-active.gif); }
+
+div.html-editor div.toolbar ul li button.resetbackcolor { background: url(buttons/images/colorbgclear-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.resetbackcolor:active { background: url(buttons/images/colorbgclear-active.gif) }
+
+div.html-editor div.toolbar ul li button.removeformat { background: url(buttons/images/unformat-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.removeformat:active { background: url(buttons/images/unformat-active.gif) }
+
+div.html-editor div.toolbar ul li.size { padding-left:4px; }
+
+div.html-editor div.toolbar ul li.font { padding-left:4px;}
+
+div.html-editor div.toolbar ul li button.cut { background: url(buttons/images/cut-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.cut:active { background: url(buttons/images/cut-active.gif) }
+
+div.html-editor div.toolbar ul li button.copy { background: url(buttons/images/copy-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.copy:active { background: url(buttons/images/copy-active.gif) }
+
+div.html-editor div.toolbar ul li button.paste { background: url(buttons/images/paste-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.paste:active { background: url(buttons/images/paste-active.gif) }
+
+div.html-editor div.toolbar ul li button.pastetext { background: url(buttons/images/pastetext-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.pastetext:active { background: url(buttons/images/pastetext-active.gif) }
+
+div.html-editor div.toolbar ul li button.pasteword { background: url(buttons/images/pasteword-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.pasteword:active { background: url(buttons/images/pasteword-active.gif) }
+
+div.html-editor div.toolbar ul li button.outdent { background: url(buttons/images/indentmore-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.outdent.active { background: url(buttons/images/indentmore-active.gif) }
+
+div.html-editor div.toolbar ul li button.indent { background: url(buttons/images/indentless-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.indent.active { background: url(buttons/images/indentless-active.gif) }
+
+div.html-editor div.toolbar ul li button.p { background: url(buttons/images/formatparagraph-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.p.active { background: url(buttons/images/formatparagraph-active.gif) }
+
+div.html-editor div.toolbar ul li button.indent { background: url(buttons/images/indentless-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.indent.active { background: url(buttons/images/indentless-active.gif) }
+
+div.html-editor div.toolbar ul li button.indent { background: url(buttons/images/indentless-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.indent.active { background: url(buttons/images/indentless-active.gif) }
+
+div.html-editor div.toolbar ul li button.indent { background: url(buttons/images/indentless-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.indent.active { background: url(buttons/images/indentless-active.gif) }
+
+div.html-editor div.toolbar ul li button.indent { background: url(buttons/images/indentless-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.indent.active { background: url(buttons/images/indentless-active.gif) }
+
+div.html-editor div.toolbar ul li button.justifyleft { background: url(buttons/images/alignleft-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.justifyleft.active { background: url(buttons/images/alignleft-active.gif) }
+
+div.html-editor div.toolbar ul li button.justifycenter { background: url(buttons/images/aligncenter-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.justifycenter.active { background: url(buttons/images/aligncenter-active.gif) }
+
+div.html-editor div.toolbar ul li button.justifyright { background: url(buttons/images/alignright-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.justifyright.active { background: url(buttons/images/alignright-active.gif) }
+
+div.html-editor div.toolbar ul li button.justifyfull { background: url(buttons/images/alignjustify-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.justifyfull.active { background: url(buttons/images/alignjustify-active.gif) }
+
+div.html-editor div.toolbar ul li button.justifyreset { background: url(buttons/images/alignremove-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.justifyreset.active { background: url(buttons/images/alignremove-active.gif) }
+
+div.html-editor div.toolbar ul li button.orderedlist { background: url(buttons/images/listnum-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.orderedlist.active { background: url(buttons/images/listnum-active.gif) }
+
+div.html-editor div.toolbar ul li button.unorderedlist { background: url(buttons/images/listbullet-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.unorderedlist.active { background: url(buttons/images/listbullet-active.gif) }
+
+div.html-editor div.toolbar ul li button.horizontalrule { background: url(buttons/images/rule-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.horizontalrule.active { background: url(buttons/images/rule-active.gif) }
+
+div.html-editor div.toolbar ul li button.link { background: url(buttons/images/link-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.link.active { background: url(buttons/images/link-active.gif) }
+
+div.html-editor div.toolbar ul li button.unlink { background: url(buttons/images/unlink-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.unlink.active { background: url(buttons/images/unlink-active.gif) }
