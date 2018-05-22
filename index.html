@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="./html-editor.css">
+    <style>
+    body {
+      background-color:#CCCCCC;
+    }
+    </style>
+    <script type="text/javascript" src="./node_modules/jquery/dist/jquery.js"></script>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=10"> 
+    <title>Html Editor</title>
+  </head>
+  <body>
+    <textarea cols="72" wrap="hard" style="height: 500px; width: 700px;" id="htmleditortest">test</textarea>
+    <script type="text/javascript" src="./build/html_editor.js"></script>
+    <script>html_editor.createEditor("htmleditortest");</script>
+  </body>
+
+</html>
