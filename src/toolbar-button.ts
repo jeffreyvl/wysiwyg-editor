@@ -1,18 +1,19 @@
 
-import { Direction } from "./util";
+import { Direction, ActiveMode } from "./util";
 import { ToolbarItem, ItemToCheck } from "./toolbar-item";
 import { Toolbar } from "./toolbar";
 
 export abstract class ToolbarButtonBase extends ToolbarItem {
 
     button: HTMLElement;
-    constructor(name: string, text: string, toolbar: Toolbar, check: boolean = true, command?: string, argument?: any) {
+    constructor(name: string, text: string, toolbar: Toolbar) {
         super(toolbar);
-        this.button = $("<button/>").addClass(name).attr("title", text).click((e) => {this.execute();this.toolbar.buttonClick(e);})[0];
+        this.button = $("<button/>").addClass(name).attr("title", text).click((e) => {
+            this.execute();this.toolbar.checkState();e.preventDefault();return false;})[0];
         $(this.container).append(this.button);
     }
 
-    abstract execute(): void;
+    abstract execute(): boolean;
 
     setActive(): void {
         $(this.button).addClass("active");
@@ -33,8 +34,10 @@ export class ToolbarButtonExecCommand extends ToolbarButtonBase {
         this.command = command ? command : name;
         this.argument = argument;
     }
-    execute(): void {
+    execute(): boolean {
         this.toolbar.editArea.formatDoc(this.command, false, this.argument);
+        return true;
+
     }
 }
 
@@ -52,11 +55,23 @@ export class ChangeDirectionButton extends ToolbarButtonBase implements ItemToCh
         this.direction = direction;
     }
 
-    execute(): void {
-        this.toolbar.editArea.changeDirection(this.direction);
+    execute(): boolean {
+        return this.toolbar.editArea.changeDirection(this.direction);
     }
 
     checkState(): void {
         this.toolbar.editArea.getDirection() === this.direction ? this.setActive() : this.removeActive();
+    }
+}
+
+export class ToggleViewButton extends ToolbarButtonBase {
+
+    activeMode:ActiveMode;
+    constructor(activeMode:ActiveMode, name:string, text:string, toolbar:Toolbar) {
+        super(name,text, toolbar);
+        this.activeMode = activeMode;
+    }
+    execute():boolean {
+        return this.toolbar.setMode(this.activeMode);
     }
 }

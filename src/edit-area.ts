@@ -12,7 +12,6 @@ export class EditArea {
     previousRange: Range;
     textArea: HTMLTextAreaElement;
     editor: HTMLDivElement;
-    mode: ActiveMode;
     pasteFlag: boolean = false;
     cutFlag: boolean = false;
 
@@ -26,7 +25,6 @@ export class EditArea {
         // .on("paste", (e) => this.onPaste(e));
         editor.contentEditable = "true";
         this.updateEditor();
-        this.setMode(ActiveMode.Design);
     }
 
     onPaste(e: any): boolean {
@@ -62,20 +60,25 @@ export class EditArea {
         $(this.textArea).val($(this.editor).html());
     }
 
-    setMode(mode: ActiveMode): void {
-        if (this.mode !== undefined && (this.mode === mode || (mode !== ActiveMode.Html || this.mode !== ActiveMode.Html))) {
-            return;
+    updateMode(mode: ActiveMode): boolean {
+        if (mode === undefined) {
+            return false;
         }
         if (mode === ActiveMode.Html) {
             this.updateTextArea();
-            $(this.textArea).show();
             $(this.editor).hide();
+            $(this.textArea).show();
         } else {
             this.updateEditor();
             $(this.textArea).hide();
             $(this.editor).show();
         }
-        this.mode = mode;
+        if (mode === ActiveMode.Preview) {
+            this.editor.contentEditable = "false";
+        } else {
+            this.editor.contentEditable = "true";
+        }
+        return true;
     }
 
     checkState(cmd: string): boolean {
@@ -101,9 +104,9 @@ export class EditArea {
         return false;
     }
 
-    changeDirection(direction: Direction): void {
+    changeDirection(direction: Direction): boolean {
         if (direction === this.getDirection()) {
-            return;
+            return false;
         }
         this.editor.focus();
         this.saveSelection();
@@ -125,6 +128,7 @@ export class EditArea {
         }
         this.editor.focus();
         this.restoreSelection();
+        return true;
     }
 
     saveSelection(): void {
@@ -153,8 +157,9 @@ export class EditArea {
     }
 
     formatDoc(cmd: string, showUI?: boolean, value?: any): void {
+        this.editor.focus();
         if (document.queryCommandEnabled(cmd)) {
-            document.execCommand(cmd, showUI, value);
+            document.execCommand(cmd, true, value);
             this.updateTextArea();
         }
         this.editor.focus();

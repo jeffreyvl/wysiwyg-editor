@@ -26,7 +26,7 @@ export class ColorPickerItem extends ToolbarItem {
         this.command = command?command:name;
         this.color = defaultColor;
         this.applyButton = $("<button/>").appendTo(this.container).attr("title", text).addClass(name)
-                            .css("float", "left").click((e) => {this.execute();this.toolbar.buttonClick(e);})[0];
+                            .css("float", "left").click((e) => {this.execute();e.preventDefault();return false;})[0];
         this.selectButton = $("<button/>").appendTo(this.container).attr("title", text).addClass("selector")
                             .click((e) => {this.openColorPicker(); e.preventDefault();})[0];
         this.showColor();
