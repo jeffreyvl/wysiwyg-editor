@@ -7,6 +7,8 @@ import "rangy/lib/rangy-serializer";
 import "rangy/lib/rangy-selectionsaverestore";
 
 export class EditArea {
+    savedSelection: RangySelection;
+    savedSelectionActiveElement: Element;
     previousRange: Range;
     textArea: HTMLTextAreaElement;
     editor: HTMLDivElement;
@@ -21,7 +23,6 @@ export class EditArea {
         this.textArea = <HTMLTextAreaElement>textArea;
         this.editor = <HTMLDivElement>editor;
         let listener: () => boolean = () => { this.updateTextArea(); return true; };
-        // $(this.editor).mousedown(listener).mouseup(listener).keydown(listener).keyup(listener).blur(listener)
         // .on("paste", (e) => this.onPaste(e));
         editor.contentEditable = "true";
         this.updateEditor();
@@ -93,7 +94,7 @@ export class EditArea {
     checkrtl(): boolean {
         if (this.editor.childNodes.length === 1) {
             let firstChild: HTMLElement = <HTMLElement>this.editor.firstChild;
-            if (firstChild.nodeType !== 3 && firstChild.style.direction === "rtl") {
+            if (firstChild.nodeType === 1 && firstChild.style.direction === "rtl") {
                 return true;
             }
         }
@@ -104,24 +105,47 @@ export class EditArea {
         if (direction === this.getDirection()) {
             return;
         }
-        let range: RangyRange = rangy.createRange();
-        if (direction === Direction.RTL) {
-            let par: HTMLElement = $("<p/>").css("direction", "rtl")[0];
-            range.selectNodeContents(this.editor);
-            range.surroundContents(par);
-        } else {
-            let node: Node = this.editor.firstChild;
-            this.editor.removeChild(this.editor.firstChild);
-            while (node.firstChild) {
-                this.editor.appendChild(node.firstChild);
-            }
-            range.selectNodeContents(this.editor);
-        }
-        let selection:RangySelection = rangy.getSelection();
-        selection.setSingleRange(range);
-        selection.collapseToEnd();
         this.editor.focus();
+        this.saveSelection();
+        if (direction === Direction.RTL) {
+            if (this.editor.childNodes.length === 1 && this.editor.firstChild.nodeType === 1
+                && ((<Element>this.editor.firstChild).nodeName === "DIV" || (<Element>this.editor.firstChild).nodeName === "SPAN")) {
+                $(<Element>this.editor.firstChild).css("direction", "rtl");
+            } else {
+                let par: HTMLElement = $("<div/>").css("direction", "rtl")[0];
+                $(this.editor).contents().wrapAll(par);
+            }
+        } else {
+            let element: Element = <Element>this.editor.firstChild;
+            $(element).css("direction", "");
+            if (element.getAttribute("style") === null ||
+                element.getAttribute("style") === "") {
+                $(this.editor.firstChild).contents().unwrap();
+            }
+        }
+        this.editor.focus();
+        this.restoreSelection();
     }
+
+    saveSelection(): void {
+        if (this.savedSelection) {
+            rangy.removeMarkers(this.savedSelection);
+        }
+        this.savedSelection = rangy.saveSelection();
+        this.savedSelectionActiveElement = document.activeElement;
+    }
+    restoreSelection(): void {
+        if (this.savedSelection) {
+            rangy.restoreSelection(this.savedSelection, true);
+            this.savedSelection = null;
+            window.setTimeout(() => {
+                if (this.savedSelectionActiveElement && typeof (<HTMLElement>this.savedSelectionActiveElement).focus !== "undefined") {
+                    (<HTMLElement>this.savedSelectionActiveElement).focus();
+                }
+            }, 1);
+        }
+    }
+
 
     getFirstRange(): RangyRange {
         var sel: RangySelection = rangy.getSelection();

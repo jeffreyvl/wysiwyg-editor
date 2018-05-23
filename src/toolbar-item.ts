@@ -8,9 +8,10 @@ export abstract class ToolbarItem {
         this.toolbar = toolbar;
         this.container = document.createElement("li");
     }
-    checkState():void {
-        return;
-    }
+}
+export interface ItemToCheck {
+
+    checkState():void;
 }
 
 export class ColorPickerItem extends ToolbarItem {

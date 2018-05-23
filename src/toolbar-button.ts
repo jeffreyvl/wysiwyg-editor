@@ -1,6 +1,7 @@
-import { Toolbar } from "./toolbar";
+
 import { Direction } from "./util";
-import { ToolbarItem } from "./toolbar-item";
+import { ToolbarItem, ItemToCheck } from "./toolbar-item";
+import { Toolbar } from "./toolbar";
 
 export abstract class ToolbarButtonBase extends ToolbarItem {
 
@@ -22,31 +23,28 @@ export abstract class ToolbarButtonBase extends ToolbarItem {
     }
 }
 
-export class ToolbarButton extends ToolbarButtonBase {
+export class ToolbarButtonExecCommand extends ToolbarButtonBase {
     command: string;
     argument: any | undefined;
     check: boolean;
     button: HTMLElement;
-    constructor(name: string, text: string, toolbar: Toolbar, check: boolean = true, command?: string, argument?: any) {
+    constructor(name: string, text: string, toolbar: Toolbar, command?: string, argument?: any) {
         super(name, text, toolbar);
-        this.check = check;
         this.command = command ? command : name;
         this.argument = argument;
     }
-
-    checkState(): void {
-        if (!this.check) {
-            return;
-        }
-        this.toolbar.editArea.checkState(this.command) ? this.setActive() : this.removeActive();
-    }
-
     execute(): void {
         this.toolbar.editArea.formatDoc(this.command, false, this.argument);
     }
 }
 
-export class ChangeDirectionButton extends ToolbarButtonBase {
+export class ToolbarButtonExecCommandCheck extends ToolbarButtonExecCommand implements ItemToCheck {
+    checkState(): void {
+        this.toolbar.editArea.checkState(this.command) ? this.setActive() : this.removeActive();
+    }
+}
+
+export class ChangeDirectionButton extends ToolbarButtonBase implements ItemToCheck {
 
     direction: Direction;
     constructor(name: string, text: string, toolbar: Toolbar, direction: Direction) {
