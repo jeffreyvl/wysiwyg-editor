@@ -1,4 +1,10 @@
 import { ActiveMode, Direction } from "./util";
+import rangy from "rangy/lib/rangy-core.js";
+import "rangy/lib/rangy-highlighter";
+import "rangy/lib/rangy-classapplier";
+import "rangy/lib/rangy-textrange";
+import "rangy/lib/rangy-serializer";
+import "rangy/lib/rangy-selectionsaverestore";
 
 export class EditArea {
     previousRange: Range;
@@ -14,7 +20,6 @@ export class EditArea {
         }
         this.textArea = <HTMLTextAreaElement>textArea;
         this.editor = <HTMLDivElement>editor;
-        // $(this.editor).blur(() => this.previousRange = this.getRange());
         let listener: () => boolean = () => { this.updateTextArea(); return true; };
         // $(this.editor).mousedown(listener).mouseup(listener).keydown(listener).keyup(listener).blur(listener)
         // .on("paste", (e) => this.onPaste(e));
@@ -99,12 +104,9 @@ export class EditArea {
         if (direction === this.getDirection()) {
             return;
         }
-
-        this.editor.focus();
-        this.previousRange = this.getRange();
+        let range: RangyRange = rangy.createRange();
         if (direction === Direction.RTL) {
             let par: HTMLElement = $("<p/>").css("direction", "rtl")[0];
-            let range: Range = document.createRange();
             range.selectNodeContents(this.editor);
             range.surroundContents(par);
         } else {
@@ -113,47 +115,20 @@ export class EditArea {
             while (node.firstChild) {
                 this.editor.appendChild(node.firstChild);
             }
+            range.selectNodeContents(this.editor);
         }
+        let selection:RangySelection = rangy.getSelection();
+        selection.setSingleRange(range);
+        selection.collapseToEnd();
         this.editor.focus();
-        this.restoreRange();
     }
 
-    getSelection(): Selection {
-        if (window.getSelection) {
-            return window.getSelection();
-        }
-        if ((<any>document).selection) {
-            return (<any>document).selection;
-        }
-        return null;
-    }
-
-    getRange(): Range {
-        let selection: Selection = this.getSelection();
-        if (!selection) {
-            return null;
-        }
-        if (selection.getRangeAt) {
-            if (selection.rangeCount > 0) {
-                return selection.getRangeAt(0);
-            }
-        }
-        if ((<any>selection).createRange) {
-            return (<any>selection).createRange();
-        }
-        return null;
-    }
-
-    restoreRange(): void {
-        if (this.previousRange) {
-            let selection: Selection = this.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(this.previousRange);
-        }
+    getFirstRange(): RangyRange {
+        var sel: RangySelection = rangy.getSelection();
+        return sel.rangeCount ? sel.getRangeAt(0) : null;
     }
 
     formatDoc(cmd: string, showUI?: boolean, value?: any): void {
-        this.editor.focus();
         if (document.queryCommandEnabled(cmd)) {
             document.execCommand(cmd, showUI, value);
             this.updateTextArea();
