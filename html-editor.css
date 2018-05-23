@@ -180,6 +180,18 @@ div.html-editor div.toolbar ul li button.cut { background: url(buttons/images/cu
 
 div.html-editor div.toolbar ul li button.cut:active { background: url(buttons/images/cut-active.gif) }
 
+div.html-editor div.toolbar ul li button.design { background: url(buttons/images/design-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.design.active { background: url(buttons/images/design-active.gif) }
+
+div.html-editor div.toolbar ul li button.html { background: url(buttons/images/html-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.html.active { background: url(buttons/images/html-active.gif) }
+
+div.html-editor div.toolbar ul li button.preview { background: url(buttons/images/preview-inactive.gif) }
+
+div.html-editor div.toolbar ul li button.preview.active { background: url(buttons/images/preview-active.gif) }
+
 div.html-editor div.toolbar ul li button.copy { background: url(buttons/images/copy-inactive.gif) }
 
 div.html-editor div.toolbar ul li button.copy:active { background: url(buttons/images/copy-active.gif) }
@@ -204,25 +216,10 @@ div.html-editor div.toolbar ul li button.indent { background: url(buttons/images
 
 div.html-editor div.toolbar ul li button.indent.active { background: url(buttons/images/indentless-active.gif) }
 
-div.html-editor div.toolbar ul li button.p { background: url(buttons/images/formatparagraph-inactive.gif) }
+div.html-editor div.toolbar ul li button.paragraph { background: url(buttons/images/formatparagraph-inactive.gif) }
 
-div.html-editor div.toolbar ul li button.p.active { background: url(buttons/images/formatparagraph-active.gif) }
+div.html-editor div.toolbar ul li button.paragraph.active { background: url(buttons/images/formatparagraph-active.gif) }
 
-div.html-editor div.toolbar ul li button.indent { background: url(buttons/images/indentless-inactive.gif) }
-
-div.html-editor div.toolbar ul li button.indent.active { background: url(buttons/images/indentless-active.gif) }
-
-div.html-editor div.toolbar ul li button.indent { background: url(buttons/images/indentless-inactive.gif) }
-
-div.html-editor div.toolbar ul li button.indent.active { background: url(buttons/images/indentless-active.gif) }
-
-div.html-editor div.toolbar ul li button.indent { background: url(buttons/images/indentless-inactive.gif) }
-
-div.html-editor div.toolbar ul li button.indent.active { background: url(buttons/images/indentless-active.gif) }
-
-div.html-editor div.toolbar ul li button.indent { background: url(buttons/images/indentless-inactive.gif) }
-
-div.html-editor div.toolbar ul li button.indent.active { background: url(buttons/images/indentless-active.gif) }
 
 div.html-editor div.toolbar ul li button.justifyleft { background: url(buttons/images/alignleft-inactive.gif) }
 
