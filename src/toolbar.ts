@@ -128,8 +128,8 @@ export class Toolbar {
         this.toolbarItems.paste = new ToolbarButtonExecCommand("paste", "Plakken", this);
         this.toolbarItems.pastetext = new ToolbarButtonExecCommand("paste", "Tekst plakken", this);
         this.toolbarItems.pasteword = new ToolbarButtonExecCommand("paste", "MS Word plakken", this);
-        this.toolbarItems.indent = new ToolbarButtonExecCommand("indent", "Inspringen vergroten", this);
-        this.toolbarItems.outdent = new ToolbarButtonExecCommand("outdent", "Inspringen verkleinen", this);
+        this.toolbarItems.outdent = new ToolbarButtonExecCommand("outdent", "Inspringen vergroten", this);
+        this.toolbarItems.indent = new ToolbarButtonExecCommand("indent", "Inspringen verkleinen", this);
         this.toolbarItems.justifyleft = new ToolbarButtonExecCommandCheck("justifyleft", "Tekst links uitlijnen", this);
         this.toolbarItems.justifycenter = new ToolbarButtonExecCommandCheck("justifycenter", "Centreren", this);
         this.toolbarItems.justifyright = new ToolbarButtonExecCommandCheck("justifyright", "Tekst rechts uitlijnen", this);
