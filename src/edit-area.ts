@@ -54,6 +54,7 @@ export class EditArea {
 
     updateEditor(): void {
         $(this.editor).html($(this.textArea).val().toString());
+        this.CleanUpCSS();
     }
 
     updateTextArea(): void {
@@ -123,7 +124,7 @@ export class EditArea {
             $(element).css("direction", "");
             if (element.getAttribute("style") === null ||
                 element.getAttribute("style") === "") {
-                $(this.editor.firstChild).contents().unwrap();
+                $(element).contents().unwrap();
             }
         }
         this.editor.focus();
@@ -159,9 +160,57 @@ export class EditArea {
     formatDoc(cmd: string, showUI?: boolean, value?: any): void {
         this.editor.focus();
         if (document.queryCommandEnabled(cmd)) {
-            document.execCommand(cmd, true, value);
+            document.execCommand(cmd, showUI, value);
             this.updateTextArea();
         }
         this.editor.focus();
     }
+
+    removeCSS(range: RangyRange, property: string): void {
+        let nodes: Node[] = range.getNodes([1], (node: Node) => { return range.containsNodeContents(node); });
+        nodes.forEach((node) => this.removeCSSElement(<Element>node, property));
+    }
+
+    removeCSSElement(element: Element, property: string): void {
+        $(element).css(property, "");
+    }
+
+    CleanUpCSS(): void {
+        let tags: string[] = ["span", "div"];
+        $(this.editor).find("*").each((index, element) => this.replaceCSSWithMarkUp(element, tags));
+    }
+
+    replaceCSSWithMarkUp(element: HTMLElement, tags:string[]): void {
+        if (tags.indexOf(element.tagName.toLowerCase()) === -1) {
+            return;
+        }
+        this.replaceCSSWithMarkUpNode(element, "fontWeight", { bold: "strong" });
+        this.replaceCSSWithMarkUpNode(element, "fontStyle", { italic: "em" });
+        this.replaceCSSWithMarkUpNode(element, "textDecoration", { underline: "u", "line-through": "strike" });
+        this.replaceCSSWithMarkUpNode(element, "verticalAlign", { sub: "sub", super: "sup" });
+
+        this.cleanUpTags(element);
+    }
+
+    replaceCSSWithMarkUpNode(element: HTMLElement, property: string, transform: {}): void {
+        let style: string = element.style[property];
+
+        if (style === "" || style === undefined) {
+            return;
+        }
+        element.style[property] = "";
+        for (let key of Object.keys(transform)) {
+            if (style.indexOf(key) !== -1) {
+                $(element).contents().wrapAll($("<" + transform[key] + "/>"));
+            }
+        }
+    }
+
+    cleanUpTags(element: HTMLElement): void {
+        if (element.getAttribute("style") === null ||
+            element.getAttribute("style") === "") {
+            $(element).contents().unwrap();
+        }
+    }
+
 }
