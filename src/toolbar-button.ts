@@ -9,7 +9,7 @@ export abstract class ToolbarButtonBase extends ToolbarItem {
     constructor(name: string, text: string, toolbar: Toolbar) {
         super(toolbar);
         this.button = $("<button/>").addClass(name).attr("title", text).click((e) => {
-            this.execute();this.toolbar.checkState();e.preventDefault();return false;})[0];
+            e.preventDefault();this.execute();this.toolbar.checkState();return false;})[0];
         $(this.container).append(this.button);
     }
 
