@@ -21,10 +21,30 @@ export class EditArea {
         }
         this.textArea = <HTMLTextAreaElement>textArea;
         this.editor = <HTMLDivElement>editor;
-        let listener: () => boolean = () => { this.updateTextArea(); return true; };
-        // .on("paste", (e) => this.onPaste(e));
         editor.contentEditable = "true";
+        $(this.editor).keydown(e => this.editorKeyPress(e));
         this.updateEditor();
+    }
+
+    editorKeyPress(e: JQuery.Event<HTMLElement, null>): boolean {
+        if (e.keyCode === 13) {
+            this.insertBreakAtRange();
+            return false;
+        }
+        return true;
+    }
+
+    insertBreakAtRange(): void {
+        let range: RangyRange = this.getFirstRange();
+        if (!range) {
+            return;
+        }
+        let span: HTMLElement = $("<span/>").html("<br>\uFEFF")[0];
+        range.deleteContents();
+        range.insertNode(span);
+        range.collapseAfter(span);
+        rangy.getSelection().setSingleRange(range);
+        $(span).contents().unwrap();
     }
 
     onPaste(e: any): boolean {
@@ -68,11 +88,11 @@ export class EditArea {
         if (mode === ActiveMode.Html) {
             this.updateTextArea();
             $(this.editor).hide();
-            $(this.textArea).show();
+            $(this.textArea).show().focus();
         } else {
             this.updateEditor();
             $(this.textArea).hide();
-            $(this.editor).show();
+            $(this.editor).show().focus();
         }
         if (mode === ActiveMode.Preview) {
             this.editor.contentEditable = "false";
@@ -166,29 +186,28 @@ export class EditArea {
         this.editor.focus();
     }
 
-    removeCSS(range: RangyRange, property: string): void {
-        let nodes: Node[] = range.getNodes([1], (node: Node) => { return range.containsNodeContents(node); });
-        nodes.forEach((node) => this.removeCSSElement(<Element>node, property));
-    }
+    // removeCSS(range: RangyRange, property: string): void {
+    //     let nodes: Node[] = range.getNodes([1], (node: Node) => { return range.containsNodeContents(node); });
+    //     nodes.forEach((node) => this.removeCSSElement(<Element>node, property));
+    // }
 
-    removeCSSElement(element: Element, property: string): void {
-        $(element).css(property, "");
-    }
+    // removeCSSElement(element: Element, property: string): void {
+    //     $(element).css(property, "");
+    // }
 
     CleanUpCSS(): void {
         let tags: string[] = ["span", "div"];
         $(this.editor).find("*").each((index, element) => this.replaceCSSWithMarkUp(element, tags));
     }
 
-    replaceCSSWithMarkUp(element: HTMLElement, tags:string[]): void {
+    replaceCSSWithMarkUp(element: HTMLElement, tags: string[]): void {
         if (tags.indexOf(element.tagName.toLowerCase()) === -1) {
             return;
         }
-        this.replaceCSSWithMarkUpNode(element, "fontWeight", { bold: "strong" });
-        this.replaceCSSWithMarkUpNode(element, "fontStyle", { italic: "em" });
-        this.replaceCSSWithMarkUpNode(element, "textDecoration", { underline: "u", "line-through": "strike" });
-        this.replaceCSSWithMarkUpNode(element, "verticalAlign", { sub: "sub", super: "sup" });
-
+        this.replaceCSSWithMarkUpNode(element, "fontWeight", { bold: $("<strong/>") });
+        this.replaceCSSWithMarkUpNode(element, "fontStyle", { italic: $("<em/>") });
+        this.replaceCSSWithMarkUpNode(element, "textDecoration", { underline: $("<u/>"), "line-through": $("<strike/>") });
+        this.replaceCSSWithMarkUpNode(element, "verticalAlign", { sub: $("<sub/>"), super: $("<sup/>") });
         this.cleanUpTags(element);
     }
 
@@ -201,7 +220,7 @@ export class EditArea {
         element.style[property] = "";
         for (let key of Object.keys(transform)) {
             if (style.indexOf(key) !== -1) {
-                $(element).contents().wrapAll($("<" + transform[key] + "/>"));
+                $(element).contents().wrapAll(transform[key]);
             }
         }
     }

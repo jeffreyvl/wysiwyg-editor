@@ -130,10 +130,10 @@ export class Toolbar {
         this.toolbarItems.pasteword = new ToolbarButtonExecCommand("paste", "MS Word plakken", this);
         this.toolbarItems.outdent = new ToolbarButtonExecCommand("outdent", "Inspringen vergroten", this);
         this.toolbarItems.indent = new ToolbarButtonExecCommand("indent", "Inspringen verkleinen", this);
-        this.toolbarItems.justifyleft = new ToolbarButtonExecCommandCheck("justifyleft", "Tekst links uitlijnen", this);
-        this.toolbarItems.justifycenter = new ToolbarButtonExecCommandCheck("justifycenter", "Centreren", this);
-        this.toolbarItems.justifyright = new ToolbarButtonExecCommandCheck("justifyright", "Tekst rechts uitlijnen", this);
-        this.toolbarItems.justifyfull = new ToolbarButtonExecCommandCheck("justifyfull", "Uitvullen", this);
+        this.toolbarItems.justifyleft = new ToolbarButtonExecCommand("justifyleft", "Tekst links uitlijnen", this);
+        this.toolbarItems.justifycenter = new ToolbarButtonExecCommand("justifycenter", "Centreren", this);
+        this.toolbarItems.justifyright = new ToolbarButtonExecCommand("justifyright", "Tekst rechts uitlijnen", this);
+        this.toolbarItems.justifyfull = new ToolbarButtonExecCommand("justifyfull", "Uitvullen", this);
         this.toolbarItems.justifyreset = new ToolbarButtonExecCommandCheck("justifyreset", "Uitlijnen wissen",
                                                                             this, "removeformat", "justify");
         this.toolbarItems.paragraph = new ToolbarButtonExecCommand("paragraph", "Paragraaf maken", this, "insertparagraph");
