@@ -48,25 +48,26 @@ export class ToolbarButtonExecCommandCheck extends ToolbarButtonExecCommand impl
 }
 
 export class CustomButton extends ToolbarButtonBase {
-    exec: ()=> boolean;
-    constructor(name: string, text:string, toolbar: Toolbar, exec: ()=>boolean) {
+    exec: ()=> void;
+    constructor(name: string, text:string, toolbar: Toolbar, exec: ()=>void) {
         super(name,text,toolbar);
         this.exec = exec;
     }
     execute():boolean {
-        return this.exec();
+        this.exec();
+        return true;
     }
 }
 
 export class CustomButtonCheck extends CustomButton implements ItemToCheck {
-    check: () => void;
-    constructor(name:string, text:string, toolbar: Toolbar, exec:()=>boolean, check:()=>void) {
+    check: () => boolean;
+    constructor(name:string, text:string, toolbar: Toolbar, exec:()=>void, check:()=>boolean) {
         super(name,text,toolbar,exec);
         this.check = check;
     }
 
     checkState():void {
-        this.check();
+        this.check() ? this.setActive() : this.removeActive();
     }
 }
 export class ChangeDirectionButton extends ToolbarButtonBase implements ItemToCheck {

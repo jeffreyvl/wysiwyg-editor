@@ -3,7 +3,7 @@ import { Dictionary, ActiveMode, ToolbarOptions, Direction } from "./util";
 import { ItemToCheck, ToolbarItem, ColorPickerItem } from "./toolbar-item";
 import {
     ChangeDirectionButton, ToolbarButtonBase, ToolbarButtonExecCommand,
-    ToolbarButtonExecCommandCheck, ToggleViewButton
+    ToolbarButtonExecCommandCheck, ToggleViewButton, CustomButton, CustomButtonCheck
 } from "./toolbar-button";
 
 export class Toolbar {
@@ -136,7 +136,8 @@ export class Toolbar {
         this.toolbarItems.justifyfull = new ToolbarButtonExecCommand("justifyfull", "Uitvullen", this);
         this.toolbarItems.justifyreset = new ToolbarButtonExecCommandCheck("justifyreset", "Uitlijnen wissen",
                                                                             this, "removeformat", "justify");
-        this.toolbarItems.paragraph = new ToolbarButtonExecCommand("paragraph", "Paragraaf maken", this, "insertparagraph");
+        this.toolbarItems.paragraph = new CustomButtonCheck("paragraph", "Paragraaf maken", this,
+        () => this.editArea.insertParagraph(), () => this.editArea.checkIfRangeContainsContainerWithType(["p"]));
         this.toolbarItems.orderedlist = new ToolbarButtonExecCommand("orderedlist", "Nummering", this, "insertorderedlist");
         this.toolbarItems.unorderedlist = new ToolbarButtonExecCommand("unorderedlist", "Opsommingstekens", this, "insertunorderedlist");
         this.toolbarItems.horizontalrule = new ToolbarButtonExecCommand("horizontalrule", "Horizontale lijn toevoegen",

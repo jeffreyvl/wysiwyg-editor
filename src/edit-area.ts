@@ -1,4 +1,4 @@
-import { ActiveMode, Direction, CaretPosition } from "./util";
+import { ActiveMode, Direction, CaretPosition, NodesInRange } from "./util";
 import rangy from "rangy/lib/rangy-core.js";
 import "rangy/lib/rangy-highlighter";
 import "rangy/lib/rangy-classapplier";
@@ -8,6 +8,7 @@ import "rangy/lib/rangy-selectionsaverestore";
 import { Helper } from "./helper";
 
 export class EditArea {
+
     savedSelection: RangySelection;
     savedSelectionActiveElement: Element;
     previousRange: Range;
@@ -23,68 +24,8 @@ export class EditArea {
         this.textArea = <HTMLTextAreaElement>textArea;
         this.editor = <HTMLDivElement>editor;
         editor.contentEditable = "true";
-        $(this.editor).keydown(e => this.editorKeyPress(e));
+        rangy.init();
         this.updateEditor();
-    }
-
-    editorKeyPress(e: JQuery.Event<HTMLElement, null>): boolean {
-        // if (e.keyCode === 13 && !this.CheckIfRangeIsInsideContainerWithType(["ul", "ol", "li"])) {
-        //     this.insertBreakAtRange();
-        //     e.preventDefault();
-        //     return false;
-        // }
-        return true;
-    }
-
-    insertBreakAtRange(): void {
-        let node: Node = $("<br>")[0];
-        this.insertNodeAtRange(node);
-        this.checkLastBreak(node);
-    }
-
-    checkLastBreak(node: Node): void {
-        if (this.editor.lastChild === node) {
-            let lastBreak: Node = $("<br>")[0];
-            this.insertNodeAtRange(lastBreak, CaretPosition.Before);
-        }
-    }
-
-    CheckIfRangeIsInsideContainerWithType(nodeNames: string[]): boolean {
-        let range: RangyRange = this.getFirstRange();
-        let container: Node = range.commonAncestorContainer;
-        if (nodeNames.indexOf(container.nodeName.toLowerCase()) !== -1) {
-            return true;
-        }
-        return this.checkIfNodeIsInsideContainerWithType(nodeNames, container);
-    }
-
-    checkIfNodeIsInsideContainerWithType(nodeNames: string[], container: Node): boolean {
-        let found: boolean = false;
-        $(container).parentsUntil(this.editor).each((index: number, element: HTMLElement): void => {
-            if (nodeNames.indexOf(element.nodeName.toLowerCase()) !== -1) {
-                found = true;
-            }
-        });
-        return found;
-    }
-
-    getParentContainerOfRangeWithType(nodeNames: string[]): Node | undefined {
-        let range: RangyRange = this.getFirstRange();
-        let container: Node = range.commonAncestorContainer;
-        if (nodeNames.indexOf(container.nodeName.toLowerCase()) !== -1) {
-            return container;
-        }
-        return this.getParentContainerOfNodeWithType(nodeNames, container);
-    }
-
-    getParentContainerOfNodeWithType(nodeNames: string[], container: Node): Node | undefined {
-        let node: Node = undefined;
-        $(container).parentsUntil(this.editor).each((index: number, element: HTMLElement): void => {
-            if (nodeNames.indexOf(element.nodeName.toLowerCase()) !== -1) {
-                node = element;
-            }
-        });
-        return node;
     }
 
     insertNodeAtRange(node: Node, caretPosition: CaretPosition = CaretPosition.After): void {
@@ -106,12 +47,18 @@ export class EditArea {
 
     setCaretAfter(node: Node): void {
         let range: RangyRange = this.getFirstRange();
+        if (range === undefined) {
+            return;
+        }
         range.collapseAfter(node);
         rangy.getSelection().setSingleRange(range);
     }
 
     setCaretBefore(node: Node): void {
         let range: RangyRange = this.getFirstRange();
+        if (range === undefined) {
+            return;
+        }
         range.collapseBefore(node);
         rangy.getSelection().setSingleRange(range);
     }
@@ -126,9 +73,6 @@ export class EditArea {
     }
 
     updateMode(mode: ActiveMode): boolean {
-        if (mode === undefined) {
-            return false;
-        }
         if (mode === ActiveMode.Html) {
             this.updateTextArea();
             $(this.editor).hide();
@@ -147,41 +91,58 @@ export class EditArea {
     }
 
     checkState(cmd: string): boolean {
+        this.editor.focus();
         if (document.queryCommandEnabled(cmd)) {
             return document.queryCommandState(cmd);
         }
     }
 
-    getDirection(): Direction {
-        if (this.editor.childNodes.length === 1) {
-            let firstChild: HTMLElement = <HTMLElement>this.editor.firstChild;
-            if (firstChild.nodeType === 1 && firstChild.style.direction === "rtl") {
-                return Direction.RTL;
-            }
+    getValueOfClosestContainerWithPropertyFromRange(property: string): string {
+        let range: RangyRange = this.getFirstRange();
+        if (range === undefined) {
+            return "";
         }
-        return Direction.LTR;
+        let container: HTMLElement = this.getParentContainerOfRangeWithType([], range);
+        if (container !== undefined && container.style && container.style[property] !== "" && container.style[property] !== undefined) {
+            return container.style[property];
+        }
+        return this.getValueOfClosestContainerWithPropertyFromNode(property, container);
+    }
+
+    getValueOfClosestContainerWithPropertyFromNode(property: string, node: Node): string {
+        let value: string = "";
+        $(node).parentsUntil(this.editor).each((index, element) => {
+            if (element.style && element.style[property] !== undefined && element.style[property] !== "") {
+                value = element.style[property];
+                return false;
+            }
+        });
+        return value;
+    }
+
+    getDirection(): Direction {
+        let direction: string = this.getValueOfClosestContainerWithPropertyFromRange("direction");
+        return direction === "" || direction.toLowerCase() === "ltr" ? Direction.LTR : Direction.RTL;
     }
 
     changeDirection(direction: Direction): boolean {
-        if (direction === this.getDirection()) {
-            return false;
-        }
         this.editor.focus();
         this.saveSelection();
         if (direction === Direction.RTL) {
-            if (this.editor.childNodes.length === 1 && this.editor.firstChild.nodeType === 1
-                && ((<Element>this.editor.firstChild).nodeName === "DIV" || (<Element>this.editor.firstChild).nodeName === "SPAN")) {
-                $(<Element>this.editor.firstChild).css("direction", "rtl");
+            let element: HTMLElement = this.castNodeToHTMLElement(this.editor.firstChild);
+            if (element !== undefined && this.editor.childNodes.length === 1
+                && element.nodeName.toLowerCase() === "div") {
+                $(element).css("direction", "rtl");
             } else {
                 let par: HTMLElement = $("<div/>").css("direction", "rtl")[0];
                 $(this.editor).contents().wrapAll(par);
             }
+            this.removeCSSPropertyChildren(this.editor.firstChild, "direction");
         } else {
-            let element: Element = <Element>this.editor.firstChild;
-            $(element).css("direction", "");
-            if (element.getAttribute("style") === null ||
-                element.getAttribute("style") === "") {
-                $(element).contents().unwrap();
+            let firstChild: HTMLElement = this.castNodeToHTMLElement(this.editor.firstChild);
+            this.removeCSSPropertyChildren(this.editor, "direction");
+            if (firstChild !== undefined && this.editor.childNodes.length === 1) {
+                this.cleanUpTag(firstChild, ["div"]);
             }
         }
         this.editor.focus();
@@ -189,6 +150,13 @@ export class EditArea {
         return true;
     }
 
+    removeCSSPropertyChildren(node: Node, property: string): void {
+        $(node).children().each((index, elem) => {
+            elem.style[property] = "";
+            this.cleanUpTag(elem, ["span", "div"]);
+            this.removeCSSPropertyChildren(elem, property);
+        });
+    }
     saveSelection(): void {
         if (this.savedSelection) {
             rangy.removeMarkers(this.savedSelection);
@@ -209,8 +177,9 @@ export class EditArea {
     }
 
     getFirstRange(): RangyRange {
-        var sel: RangySelection = rangy.getSelection();
-        return sel.rangeCount ? sel.getRangeAt(0) : null;
+        this.editor.focus();
+        let sel: RangySelection = rangy.getSelection();
+        return sel.rangeCount ? sel.getRangeAt(0) : undefined;
     }
 
     formatDoc(cmd: string, showUI?: boolean, value?: any): void {
@@ -222,20 +191,153 @@ export class EditArea {
         this.editor.focus();
     }
 
-    // removeCSS(range: RangyRange, property: string): void {
-    //     let nodes: Node[] = range.getNodes([1], (node: Node) => { return range.containsNodeContents(node); });
-    //     nodes.forEach((node) => this.removeCSSElement(<Element>node, property));
-    // }
+    insertParagraph(): void {
+        if (this.checkIfRangeIsInsideContainerWithType(["p"])) {
+            return;
+        }
+        let range: RangyRange = this.getFirstRange();
+        if (range === undefined) {
+            return;
+        }
+        // this.saveSelection();
+        let newPar: HTMLElement = document.createElement("p");
 
-    // removeCSSElement(element: Element, property: string): void {
-    //     $(element).css(property, "");
-    // }
+        if (range.collapsed) {
+            let container: Node = this.getParentContainerOfRangeWithType([], range, ["strong", "em", "sub", "sup", "u", "strike"]);
+            container = container === undefined ? this.editor : container;
+            this.surroundContainerWithElement(container, newPar);
+        } else {
+
+            let children: Node[] = this.getNodesInRange(range, NodesInRange.ChildrenAll, [1, 3]);
+
+            if (this.getNodesInRange(range, NodesInRange.Intersecting, [1]) === [] && children.length === 1) {
+                this.surroundContainerWithElement(children[0], newPar);
+            } else {
+                $(children).wrapAll(newPar);
+            }
+
+        }  // this.restoreSelection();
+        this.removeTagKeepAttributesChildren(newPar);
+    }
+
+    getHighestNodeFromRange(range?: RangyRange): Node | undefined {
+        if (range === undefined) {
+            range = this.getFirstRange();
+        }
+        if (range === undefined) {
+            return undefined;
+        }
+        let node: Node = range.commonAncestorContainer;
+        while (node.parentNode !== this.editor) {
+            node = node.parentNode;
+        }
+        return node;
+    }
+    surroundContainerWithElement(container: Node, element: HTMLElement): Node {
+        if (container === this.editor) {
+            return $(this.editor).contents().wrapAll(element)[0];
+        } else if (["span", "div"].indexOf(container.nodeName.toLowerCase()) !== -1) {
+
+            return this.replaceTag(<HTMLElement>container, element);
+
+        } else {
+            return $(container).wrap(element)[0];
+        }
+    }
+
+    getNodesInRange(range?: RangyRange, position: NodesInRange = NodesInRange.All, nodeTypes: number[] = [1]): Node[] {
+        let nodes: Node[] = [];
+        if (range === undefined) {
+            range = this.getFirstRange();
+            if (range === undefined) {
+                return nodes;
+            }
+        }
+        let container: Node = range.commonAncestorContainer;
+        let sorting: (node: Node) => boolean = undefined;
+        if (position === NodesInRange.Intersecting) {
+            sorting = (node) => { return !range.containsNodeContents(node); };
+        }
+        if (position === NodesInRange.Inside) {
+            sorting = (node) => { return range.containsNodeContents(node); };
+        }
+        if (position === NodesInRange.ChildrenAll) {
+            sorting = (node) => { return node.parentNode === container; };
+        }
+        if (position === NodesInRange.Inside) {
+            sorting = (node) => { return node.parentNode === container && range.containsNodeContents(node); };
+        }
+        nodes = range.getNodes(nodeTypes, sorting);
+        return nodes;
+    }
+    checkIfRangeContainsContainerWithType(nodeNames: string[] = []): boolean {
+        return this.checkIfRangeIsExactelyContainerWithType(nodeNames) || this.checkIfRangeIsInsideContainerWithType(nodeNames);
+    }
+    checkIfRangeIsExactelyContainerWithType(nodeNames: string[] = [], range?: RangyRange): boolean {
+        return this.getContainerExactelyInRangeWithType !== undefined;
+    }
+
+    getContainerExactelyInRangeWithType(nodeNames: string[] = [], range?: RangyRange): Node | undefined {
+        let node: Node = undefined;
+        if (range === undefined) {
+            range = this.getFirstRange();
+        }
+        if (range === undefined) {
+            return node;
+        }
+        let children: Node[] = this.getNodesInRange(range, NodesInRange.ChildrenAll, [1, 3]);
+
+        if (this.getNodesInRange(range, NodesInRange.Intersecting, [1]) === [] && children.length === 1 &&
+            (nodeNames === [] || nodeNames.indexOf(children[0].nodeName) !== -1)) {
+            node = children[0];
+        }
+        return node;
+    }
+
+    checkIfRangeIsInsideContainerWithType(nodeNames: string[] = [], range?: RangyRange, blackList: string[] = []): boolean {
+        return this.getParentContainerOfRangeWithType(nodeNames, range, blackList) !== undefined;
+    }
+
+    checkIfNodeIsInsideContainerWithType(container: Node, nodeNames: string[] = [], blackList: string[] = []): boolean {
+        return this.getParentContainerOfNodeWithType(container, nodeNames, blackList) !== undefined;
+    }
+
+    getParentContainerOfRangeWithType(nodeNames: string[] = [], range?: RangyRange, blackList: string[] = []): HTMLElement | undefined {
+        if (range === undefined) {
+            range = this.getFirstRange();
+        }
+        if (range === undefined) {
+            return undefined;
+        }
+        let container: Node = range.commonAncestorContainer;
+        if (container.nodeType === 1 && (nodeNames === [] || nodeNames.indexOf(container.nodeName.toLowerCase()) !== -1) &&
+            (blackList.indexOf(container.nodeName.toLowerCase()) === -1)) {
+            return <HTMLElement>container;
+        }
+        return this.getParentContainerOfNodeWithType(container, nodeNames, blackList);
+    }
+
+    getParentContainerOfNodeWithType(container: Node, nodeNames: string[] = [], blackList: string[] = []): HTMLElement | undefined {
+        let node: HTMLElement = undefined;
+        $(container).parentsUntil(this.editor).each((index: number, element: HTMLElement): false => {
+            if (element.nodeType === 1 && (nodeNames === [] || nodeNames.indexOf(element.nodeName.toLowerCase()) !== -1) &&
+                (blackList.indexOf(container.nodeName.toLowerCase()) === -1)) {
+                node = element;
+                return false;
+            }
+        });
+        return node;
+    }
 
     CleanUpCSS(): void {
         $(this.editor).find("*").each((index, element) => {
-            this.replaceCSSWithMarkUp(element);
-            this.replaceCSSWithAttribute(element);
+            this.RemoveCSS(element);
         });
+    }
+    RemoveCSS(element: HTMLElement): void {
+        this.replaceCSSWithMarkUp(element);
+        this.replaceCSSWithAttribute(element);
+        // this.cleanUpTag(element, ["span", "div"]);
     }
 
     replaceCSSWithMarkUp(element: HTMLElement): void {
@@ -243,7 +345,6 @@ export class EditArea {
         this.replaceCSSWithMarkUpNode(element, "fontStyle", { italic: $("<em/>") });
         this.replaceCSSWithMarkUpNode(element, "textDecoration", { underline: $("<u/>"), "line-through": $("<strike/>") });
         this.replaceCSSWithMarkUpNode(element, "verticalAlign", { sub: $("<sub/>"), super: $("<sup/>") });
-        this.cleanUpTag(element);
     }
 
     replaceCSSWithAttribute(element: HTMLElement): void {
@@ -284,14 +385,82 @@ export class EditArea {
         return style;
     }
 
-    cleanUpTag(element: HTMLElement): void {
-        if (["span"].indexOf(element.tagName.toLowerCase()) === -1) {
-            return;
+    cleanUpTag(element: HTMLElement, nodeNames: string[] = [], attributes: string[] = ["style", "align"]): boolean {
+        if (element === undefined ||
+            (nodeNames !== [] && nodeNames.indexOf(element.tagName.toLowerCase()) === -1)) {
+            return true;
         }
-        if (element.getAttribute("style") === null ||
-            element.getAttribute("style") === "") {
+        let unwrap: boolean = true;
+        attributes.forEach((val) => {
+            if (element.getAttribute(val) !== null &&
+                element.getAttribute(val) !== "") {
+                unwrap = false;
+            }
+        });
+        if (unwrap) {
             $(element).contents().unwrap();
         }
+        return unwrap;
+    }
+
+    removeTagKeepAttributes(element: HTMLElement, nodeNames: string[] = [], insertBR: boolean = false,
+        attributes: string[] = ["style", "align"]): void {
+        if (insertBR && (nodeNames === [] || nodeNames.indexOf(element.tagName.toLowerCase()) !== -1)) {
+            $(element).insertAfter($("<br>"));
+        }
+        if (this.cleanUpTag(element, nodeNames, attributes)) {
+            return;
+        }
+        let span: HTMLElement = $("<span/>")[0];
+        this.replaceTag(element, span, attributes);
+    }
+    removeTagKeepAttributesRecursive(element: HTMLElement, nodeNames: string[] = [], insertBR: boolean = false,
+        attributes: string[] = ["style", "align"]): void {
+        this.removeTagKeepAttributes(element, nodeNames, insertBR, attributes);
+        this.removeTagKeepAttributesChildren(element, nodeNames, insertBR, attributes);
+    }
+    removeTagKeepAttributesChildren(element: HTMLElement, nodeNames: string[] = [], insertBR: boolean = false,
+        attributes: string[] = ["style", "align"]): void {
+        $(element).children().each((index, element) => this.removeTagKeepAttributes(element, nodeNames, insertBR, attributes));
+    }
+
+    replaceTag(element: HTMLElement, newElement: HTMLElement, attributes: string[] = ["style", "align"]): HTMLElement {
+        attributes.forEach((val) => {
+            newElement.setAttribute(val, element.getAttribute(val));
+        });
+        return <HTMLElement>$(element).contents().unwrap().wrapAll(newElement)[0];
+    }
+
+
+    // removeCSSFromRange(range: RangyRange, property: string): void {
+    //     let nodes: Node[] = range.getNodes([1], (node: Node) => { return range.containsNodeContents(node); });
+    //     nodes.forEach((node) => this.removeCSSElement(<Element>node, property));
+    // }
+    // removeCSSElement(element: Element, property: string): void {
+    //     $(element).css(property, "");
+    // }
+
+    castNodeToHTMLElement(node: Node): HTMLElement {
+        if (node !== undefined && node.nodeType === 1) {
+            return <HTMLElement>node;
+        }
+        return undefined;
     }
 
 }
+
+  // insertBreakAtRange(): void {
+    //     let node: Node = $("<br>")[0];
+    //     this.insertNodeAtRange(node);
+    //     this.checkLastBreak(node);
+    // }
+
+    // checkLastBreak(node: Node): void {
+    //     if (this.editor.lastChild === node) {
+    //         let lastBreak: Node = $("<br>")[0];
+    //         this.insertNodeAtRange(lastBreak, CaretPosition.Before);
+    //     }
+    // }
+
+
+
