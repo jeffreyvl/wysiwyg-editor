@@ -137,7 +137,7 @@ export class Toolbar {
         this.toolbarItems.justifyreset = new ToolbarButtonExecCommandCheck("justifyreset", "Uitlijnen wissen",
                                                                             this, "removeformat", "justify");
         this.toolbarItems.paragraph = new CustomButtonCheck("paragraph", "Paragraaf maken", this,
-        () => this.editArea.insertParagraph(), () => this.editArea.checkIfRangeContainsContainerWithType(["p"]));
+        () => this.editArea.insertParagraph(), () => this.editArea.checkParagraph());
         this.toolbarItems.orderedlist = new ToolbarButtonExecCommand("orderedlist", "Nummering", this, "insertorderedlist");
         this.toolbarItems.unorderedlist = new ToolbarButtonExecCommand("unorderedlist", "Opsommingstekens", this, "insertunorderedlist");
         this.toolbarItems.horizontalrule = new ToolbarButtonExecCommand("horizontalrule", "Horizontale lijn toevoegen",
