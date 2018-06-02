@@ -159,7 +159,7 @@ export class EditArea {
             case ("p"):
                 this.surroundRange("p");
                 break;
-            case("justifyreset"):
+            case ("justifyreset"):
                 this.removeAttributeFromRange("align");
                 break;
             default:
@@ -177,7 +177,7 @@ export class EditArea {
         if (range === undefined) {
             return;
         }
-        let element: HTMLElement = this.getParentOfRangeWithType([tagName], range);
+        let element: HTMLElement = this.getParentWithTypeOfRange([tagName], range);
         if (element !== undefined) {
             $(element).contents().unwrap();
             return;
@@ -185,7 +185,7 @@ export class EditArea {
         let newElement: HTMLElement = document.createElement(tagName);
 
         if (range.collapsed) {
-            let container: Node = this.getParentOfRangeWithType([], range, ["strong", "em", "sub", "sup", "u", "strike"], [1]);
+            let container: Node = this.getParentWithTypeOfRange([], range, ["strong", "em", "sub", "sup", "u", "strike"], [1]);
             container = container === undefined ? this.getHighestNodeFromRange(range) : container;
             this.surroundContainerWithElement(container, newElement, true, true);
         } else {
@@ -276,9 +276,9 @@ export class EditArea {
             return;
         }
         if (range.collapsed) {
-            let container: Node = this.getParentOfRangeWithType([], range, ["strong", "em", "sub", "sup", "u", "strike"], [1]);
-            container = container ===undefined? this.getHighestNodeFromRange(range): container;
-            HTMLParsing.removeAttributeRecursively(container,property);
+            let container: Node = this.getParentWithTypeOfRange([], range, ["strong", "em", "sub", "sup", "u", "strike"], [1]);
+            container = container === undefined ? this.getHighestNodeFromRange(range) : container;
+            HTMLParsing.removeAttributeRecursively(container, property);
         }
         $(this.getNodesInRange(range, NodesInRange.All)).each((index, element) => HTMLParsing.removeCSSProperty(element, property));
     }
@@ -289,18 +289,19 @@ export class EditArea {
             return;
         }
         if (range.collapsed) {
-            let container: Node = this.getParentOfRangeWithType([], range, ["strong", "em", "sub", "sup", "u", "strike"], [1]);
-            container = container ===undefined? this.getHighestNodeFromRange(range): container;
-            HTMLParsing.removeAttributeRecursively(container,attribute);
+            let container: Node = this.getParentWithAttributeFromRange("align");
+            if (container !== undefined) {
+                HTMLParsing.removeAttributeRecursively(container, attribute);
+            }
         }
         $(this.getNodesInRange(range, NodesInRange.All)).each((index, element) => HTMLParsing.removeAttribute(element, attribute));
     }
     checkIfNodeIsInsideParentWithType(container: Node, nodeNames: string[] = [], blackList: string[] = []): boolean {
-        return this.getParentOfNodeWithType(container, nodeNames, blackList) !== undefined;
+        return this.getParentWithTypeOfNode(container, nodeNames, blackList) !== undefined;
     }
 
     checkIfRangeIsInsideParentWithType(nodeNames: string[] = [], range?: RangyRange, blackList: string[] = []): boolean {
-        return this.getParentOfRangeWithType(nodeNames, range, blackList) !== undefined;
+        return this.getParentWithTypeOfRange(nodeNames, range, blackList) !== undefined;
     }
     checkIfRangeIsExactelyNodeWithType(nodeNames: string[] = [], range?: RangyRange): boolean {
         return this.getNodeExactelyInRangeWithType(nodeNames, range) !== undefined;
@@ -313,7 +314,7 @@ export class EditArea {
                 return nodes;
             }
         }
-        let container: Node = this.getParentOfRangeWithType([], range);
+        let container: Node = this.getParentWithTypeOfRange([], range);
         container = container === undefined ? this.editor : container;
         let sorting: (node: Node) => boolean = undefined;
         if (position === NodesInRange.Intersecting) {
@@ -333,67 +334,63 @@ export class EditArea {
     }
 
     getValueOfParentWithPropertyFromRange(property: string): string {
+        let parent: HTMLElement = this.getParentWithPropertyFromRange(property);
+        return parent === undefined ? "" : parent.style[property];
+    }
+
+    getParentWithPropertyFromRange(property: string): HTMLElement {
         let range: RangyRange = this.getFirstRange();
-        if (range === undefined) {
-            return "";
-        }
-        let container: HTMLElement = this.getParentOfRangeWithType([], range);
-        if (container !== undefined && container.style && container.style[property] !== "" && container.style[property] !== undefined) {
-            return container.style[property];
-        }
-        return this.getValueOfParentWithPropertyFromNode(property, container);
-    }
-
-    getValueOfParentWithPropertyFromNode(property: string, node: Node): string {
-        let value: string = "";
-        $(node).parentsUntil(this.editor).each((index, element) => {
-            if (element.style && element.style[property] !== undefined && element.style[property] !== "") {
-                value = element.style[property];
-                return false;
-            }
-        });
-        return value;
-    }
-
-    getValueOfParentWithAttributeFromRange(attribute: string): string {
-        let range: RangyRange = this.getFirstRange();
-        if (range === undefined) {
-            return "";
-        }
-        let container: HTMLElement = this.getParentOfRangeWithType([], range);
-        if (container !== undefined && container.style && container[attribute] !== "" && container[attribute] !== undefined) {
-            return container[attribute];
-        }
-        return this.getValueOfParentWithAttributeFromNode(attribute, container);
-    }
-
-    getValueOfParentWithAttributeFromNode(attribute: string, node: Node): string {
-        let value: string = "";
-        $(node).parentsUntil(this.editor).each((index, element) => {
-            if (element.style && element[attribute] !== undefined && element[attribute] !== "") {
-                value = element[attribute];
-                return false;
-            }
-        });
-        return value;
-    }
-
-    getHighestNodeFromRange(range?: RangyRange): Node | undefined {
-        if (range === undefined) {
-            range = this.getFirstRange();
-        }
         if (range === undefined) {
             return undefined;
         }
-        let node: Node = range.commonAncestorContainer;
-        while (node.parentNode !== this.editor) {
-            node = node.parentNode;
+        let container: HTMLElement = this.getParentWithTypeOfRange([], range);
+        if (container !== undefined && container.style && container.style[property] !== "" && container.style[property] !== undefined) {
+            return container;
         }
-        return node;
+        return this.getParentWithPropertyFromNode(property, container);
     }
 
-    getParentOfRangeWithType(nodeNames: string[] = [], range?: RangyRange, blackList: string[] = [],
-        nodeTypes: number[] = [1]): HTMLElement | undefined {
+    getParentWithPropertyFromNode(property: string, node: Node): HTMLElement {
+        let parent: HTMLElement = undefined;
+        $(node).parentsUntil(this.editor).each((index, element) => {
+            if (element.style && element.style[property] !== undefined && element.style[property] !== "") {
+                parent = element;
+                return false;
+            }
+        });
+        return parent;
+    }
+
+    getValueOfParentWithAttributeFromRange(property: string): string {
+        let parent: HTMLElement = this.getParentWithAttributeFromRange(property);
+        return parent === undefined ? "" : parent[property];
+    }
+
+    getParentWithAttributeFromRange(attribute: string): HTMLElement {
+        let range: RangyRange = this.getFirstRange();
+        if (range === undefined) {
+            return undefined;
+        }
+        let container: HTMLElement = this.getParentWithTypeOfRange([], range);
+        if (container !== undefined && container.style && container[attribute] !== "" && container[attribute] !== undefined) {
+            return container;
+        }
+        return this.getParentWithAttributeFromNode(attribute, container);
+    }
+
+    getParentWithAttributeFromNode(attribute: string, node: Node): HTMLElement {
+        let parent: HTMLElement = undefined;
+        $(node).parentsUntil(this.editor).each((index, element) => {
+            if (element.style && element[attribute] !== undefined && element[attribute] !== "") {
+                parent = element;
+                return false;
+            }
+        });
+        return parent;
+    }
+
+    getParentWithTypeOfRange(nodeNames: string[] = [], range?: RangyRange, blackList: string[] = [],
+        nodeTypes: number[] = [1]): HTMLElement {
         if (range === undefined) {
             range = this.getFirstRange();
         }
@@ -406,11 +403,11 @@ export class EditArea {
             (blackList.indexOf(container.nodeName.toLowerCase()) === -1)) {
             return <HTMLElement>container;
         }
-        return this.getParentOfNodeWithType(container, nodeNames, blackList, nodeTypes);
+        return this.getParentWithTypeOfNode(container, nodeNames, blackList, nodeTypes);
     }
 
-    getParentOfNodeWithType(container: Node, nodeNames: string[] = [], blackList: string[] = [],
-        nodeTypes: number[] = [1]): HTMLElement | undefined {
+    getParentWithTypeOfNode(container: Node, nodeNames: string[] = [], blackList: string[] = [],
+        nodeTypes: number[] = [1]): HTMLElement {
         let node: HTMLElement = undefined;
         $(container).parentsUntil(this.editor).each((index: number, element: HTMLElement): false => {
             if (nodeTypes.indexOf(element.nodeType) !== -1 && (nodeNames.length === 0 ||
@@ -439,6 +436,21 @@ export class EditArea {
         }
         return node;
     }
+
+    getHighestNodeFromRange(range?: RangyRange): Node {
+        if (range === undefined) {
+            range = this.getFirstRange();
+        }
+        if (range === undefined) {
+            return undefined;
+        }
+        let node: Node = range.commonAncestorContainer;
+        while (node.parentNode !== this.editor) {
+            node = node.parentNode;
+        }
+        return node;
+    }
+
 }
 
   // insertBreakAtRange(): void {
