@@ -1,8 +1,7 @@
 import { EditArea } from "./edit-area";
 import { Dictionary, ActiveMode, ToolbarOptions, Direction } from "./util";
 import { ItemToCheck, ToolbarItem, ColorPickerItem } from "./toolbar-item";
-import {
-    ChangeDirectionButton, ToolbarButtonBase, ToolbarButtonExecCommand,
+import {ToolbarButtonBase, ToolbarButtonExecCommand,
     ToolbarButtonExecCommandCheck, ToggleViewButton,
 } from "./toolbar-button";
 
@@ -156,8 +155,8 @@ export class Toolbar {
         this.toolbarItems.strikethrough = new ToolbarButtonExecCommandCheck("strikethrough", "Doorhalen", this);
         this.toolbarItems.subscript = new ToolbarButtonExecCommandCheck("subscript", "Subscript", this);
         this.toolbarItems.superscript = new ToolbarButtonExecCommandCheck("superscript", "SuperScript", this);
-        this.toolbarItems.formatltr = new ChangeDirectionButton("formatltr", "Links naar rechts uitlijnen", this, Direction.LTR);
-        this.toolbarItems.formatrtl = new ChangeDirectionButton("formatrtl", "Recht naar links uitlijnen", this, Direction.RTL);
+        this.toolbarItems.formatltr = new ToolbarButtonExecCommandCheck("formatltr", "Links naar rechts uitlijnen", this);
+        this.toolbarItems.formatrtl = new ToolbarButtonExecCommandCheck("formatrtl", "Recht naar links uitlijnen", this);
         this.toolbarItems.forecolor = new ColorPickerItem("forecolor", "Tekstkleur", this, "#FF0000");
         this.toolbarItems.backcolor = new ColorPickerItem("backcolor", "Markeren", this, "#FFFF00");
         this.toolbarItems.html = new ToggleViewButton(ActiveMode.Html, "html", "HTML Opmaken", this);

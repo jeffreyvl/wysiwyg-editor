@@ -84,7 +84,8 @@ export class HTMLParsing {
     static cleanUpTag(node: Node, nodeNames: string[] = [], attributes: string[] = ["style", "align"],
         insertBR: boolean = false): boolean {
         let element: HTMLElement = HTMLParsing.castNodeToHTMLElement(node);
-        if ((element === undefined) || (nodeNames.length > 0 && nodeNames.indexOf(element.nodeName.toLowerCase()) === -1)) {
+        if (element === undefined || element.className === "rangySelectionBoundary"
+        || (nodeNames.length > 0 && nodeNames.indexOf(element.nodeName.toLowerCase()) === -1)) {
             return true;
         }
         if (insertBR) {
@@ -105,7 +106,7 @@ export class HTMLParsing {
 
     static replaceTag(node: Node, newElement: HTMLElement, attributes: string[] = ["style", "align"]): void {
         let element: HTMLElement = HTMLParsing.castNodeToHTMLElement(node);
-        if (element === undefined) {
+        if (element === undefined || element.className === "rangySelectionBoundary") {
             return;
         }
         attributes.forEach((attr) => {

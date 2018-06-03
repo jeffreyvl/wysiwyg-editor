@@ -47,23 +47,6 @@ export class ToolbarButtonExecCommandCheck extends ToolbarButtonExecCommand impl
     }
 }
 
-export class ChangeDirectionButton extends ToolbarButtonBase implements ItemToCheck {
-
-    direction: Direction;
-    constructor(name: string, text: string, toolbar: Toolbar, direction: Direction) {
-        super(name, text, toolbar);
-        this.direction = direction;
-    }
-
-    execute(): boolean {
-        return this.toolbar.editArea.changeDirection(this.direction);
-    }
-
-    checkState(): void {
-        this.toolbar.editArea.getDirection() === this.direction ? this.setActive() : this.removeActive();
-    }
-}
-
 export class ToggleViewButton extends ToolbarButtonBase {
 
     activeMode:ActiveMode;
