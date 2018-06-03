@@ -1,3 +1,7 @@
+// tslint:disable-next-line:typedef
+declare function require(name:string);
+// tslint:disable-next-line:typedef
+var debounce = require("lodash.debounce");
 import { ActiveMode, Direction, CaretPosition, NodesInRange, Align } from "./util";
 import rangy from "rangy/lib/rangy-core.js";
 import "rangy/lib/rangy-highlighter";
@@ -5,8 +9,9 @@ import "rangy/lib/rangy-classapplier";
 import "rangy/lib/rangy-textrange";
 import "rangy/lib/rangy-serializer";
 import "rangy/lib/rangy-selectionsaverestore";
-import { Helper } from "./helper";
+import { formatHtmlString } from "./helper";
 import { HTMLParsing } from "./html-parsing";
+import { UndoManager } from "./undo-manager";
 
 export class EditArea {
 
@@ -15,9 +20,7 @@ export class EditArea {
     previousRange: Range;
     textArea: HTMLTextAreaElement;
     editor: HTMLDivElement;
-    pasteFlag: boolean = false;
-    cutFlag: boolean = false;
-
+    undoManager: UndoManager;
     constructor(textArea: HTMLElement, editor: HTMLElement) {
         if (textArea.nodeName !== "TEXTAREA" || editor.nodeName !== "DIV") {
             throw Error("Invalid HTMLElements");
@@ -27,15 +30,25 @@ export class EditArea {
         editor.contentEditable = "true";
         rangy.init();
         this.updateEditor();
+        this.undoManager = new UndoManager(this);
+        let fn: () => boolean = () => { return this.undoManager.onChange(this.undoManager); };
+        $(this.editor).keyup(debounce(fn, 500, { "maxWait": 2000 })).mouseup(fn).blur(fn).on("paste", fn).on("cut", fn);
     }
 
     updateEditor(): void {
-        $(this.editor).html($(this.textArea).val().toString());
+        this.setHTML($(this.textArea).val().toString());
         this.CleanUpCSS();
     }
 
     updateTextArea(): void {
-        $(this.textArea).val(Helper.FormatHtmlString($(this.editor).html()));
+        $(this.textArea).val(formatHtmlString(this.getHTML()));
+    }
+
+    setHTML(value: string): void {
+        $(this.editor).html(value);
+    }
+    getHTML(): string {
+        return $(this.editor).html();
     }
 
     CleanUpCSS(): void {
@@ -121,6 +134,10 @@ export class EditArea {
                 return this.getAlignment() === Align.Justify;
             case ("justifyreset"):
                 return this.getAlignment() === Align.None;
+            case ("formatltr"):
+                return this.getDirection() === Direction.LTR;
+            case ("formatrtl"):
+                return this.getDirection() === Direction.RTL;
             default:
                 if (document.queryCommandEnabled(cmd)) {
                     return document.queryCommandState(cmd);
@@ -155,12 +172,25 @@ export class EditArea {
 
     formatDoc(cmd: string, showUI?: boolean, value?: any): void {
         this.editor.focus();
+        this.saveSelection();
         switch (cmd) {
             case ("p"):
                 this.surroundRange("p");
                 break;
             case ("justifyreset"):
                 this.removeAttributeFromRange("align");
+                break;
+            case ("undo"):
+                this.undoManager.undo();
+                break;
+            case ("redo"):
+                this.undoManager.redo();
+                break;
+            case ("formatltr"):
+                this.changeDirection(Direction.LTR);
+                break;
+            case ("formatrtl"):
+                this.changeDirection(Direction.RTL);
                 break;
             default:
                 if (document.queryCommandEnabled(cmd)) {
@@ -169,6 +199,8 @@ export class EditArea {
                 break;
         }
         this.editor.focus();
+        this.restoreSelection();
+        this.undoManager.onChange(this.undoManager);
     }
 
     surroundRange(tagName: string): void {
@@ -185,7 +217,7 @@ export class EditArea {
         let newElement: HTMLElement = document.createElement(tagName);
 
         if (range.collapsed) {
-            let container: Node = this.getParentWithTypeOfRange([], range, ["strong", "em", "sub", "sup", "u", "strike"], [1]);
+            let container: Node = this.getParentWithTypeOfRange([], range, ["strong", "em", "sub", "sup", "u", "strike"]);
             container = container === undefined ? this.getHighestNodeFromRange(range) : container;
             this.surroundContainerWithElement(container, newElement, true, true);
         } else {
@@ -210,8 +242,7 @@ export class EditArea {
         }
     }
 
-    changeDirection(direction: Direction): boolean {
-        this.editor.focus();
+    changeDirection(direction: Direction): void {
         if (direction === Direction.RTL) {
             let element: HTMLElement = HTMLParsing.castNodeToHTMLElement(this.editor.firstChild);
             if (element !== undefined && this.editor.childNodes.length === 1
@@ -226,8 +257,6 @@ export class EditArea {
             let firstChild: HTMLElement = HTMLParsing.castNodeToHTMLElement(this.editor.firstChild);
             HTMLParsing.removeCSSPropertyChildren(this.editor, "direction");
         }
-        this.editor.focus();
-        return true;
     }
 
     insertNodeAtRange(node: Node, caretPosition: CaretPosition = CaretPosition.After): void {
@@ -276,9 +305,10 @@ export class EditArea {
             return;
         }
         if (range.collapsed) {
-            let container: Node = this.getParentWithTypeOfRange([], range, ["strong", "em", "sub", "sup", "u", "strike"], [1]);
-            container = container === undefined ? this.getHighestNodeFromRange(range) : container;
-            HTMLParsing.removeAttributeRecursively(container, property);
+            let container: Node = this.getParentWithPropertyFromRange("align");
+            if (container !== undefined) {
+                HTMLParsing.removeAttributeRecursively(container, property);
+            }
         }
         $(this.getNodesInRange(range, NodesInRange.All)).each((index, element) => HTMLParsing.removeCSSProperty(element, property));
     }
@@ -389,8 +419,7 @@ export class EditArea {
         return parent;
     }
 
-    getParentWithTypeOfRange(nodeNames: string[] = [], range?: RangyRange, blackList: string[] = [],
-        nodeTypes: number[] = [1]): HTMLElement {
+    getParentWithTypeOfRange(nodeNames: string[] = [], range?: RangyRange, blackList: string[] = []): HTMLElement {
         if (range === undefined) {
             range = this.getFirstRange();
         }
@@ -398,20 +427,19 @@ export class EditArea {
             return undefined;
         }
         let container: Node = range.commonAncestorContainer;
-        if (nodeTypes.indexOf(container.nodeType) !== -1 && (nodeNames.length === 0 ||
-            nodeNames.indexOf(container.nodeName.toLowerCase()) !== -1) &&
+        if (container.nodeType === 1 &&(<HTMLElement>container).className !== "rangySelectionBoundary" &&
+        (nodeNames.length === 0 || nodeNames.indexOf(container.nodeName.toLowerCase()) !== -1) &&
             (blackList.indexOf(container.nodeName.toLowerCase()) === -1)) {
             return <HTMLElement>container;
         }
-        return this.getParentWithTypeOfNode(container, nodeNames, blackList, nodeTypes);
+        return this.getParentWithTypeOfNode(container, nodeNames, blackList);
     }
 
-    getParentWithTypeOfNode(container: Node, nodeNames: string[] = [], blackList: string[] = [],
-        nodeTypes: number[] = [1]): HTMLElement {
+    getParentWithTypeOfNode(container: Node, nodeNames: string[] = [], blackList: string[] = [],): HTMLElement {
         let node: HTMLElement = undefined;
         $(container).parentsUntil(this.editor).each((index: number, element: HTMLElement): false => {
-            if (nodeTypes.indexOf(element.nodeType) !== -1 && (nodeNames.length === 0 ||
-                nodeNames.indexOf(element.nodeName.toLowerCase()) !== -1) &&
+            if (container.nodeType === 1 &&(<HTMLElement>container).className !== "rangySelectionBoundary" &&
+            (nodeNames.length === 0 || nodeNames.indexOf(element.nodeName.toLowerCase()) !== -1) &&
                 (blackList.indexOf(container.nodeName.toLowerCase()) === -1)) {
                 node = element;
                 return false;
