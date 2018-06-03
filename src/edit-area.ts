@@ -1,5 +1,5 @@
 // tslint:disable-next-line:typedef
-declare function require(name:string);
+declare function require(name: string);
 // tslint:disable-next-line:typedef
 var debounce = require("lodash.debounce");
 import { ActiveMode, Direction, CaretPosition, NodesInRange, Align } from "./util";
@@ -33,6 +33,21 @@ export class EditArea {
         this.undoManager = new UndoManager(this);
         let fn: () => boolean = () => { return this.undoManager.onChange(this.undoManager); };
         $(this.editor).keyup(debounce(fn, 500, { "maxWait": 2000 })).mouseup(fn).blur(fn).on("paste", fn).on("cut", fn);
+        $(this.editor).keydown(e => this.handleKey(this, e));
+    }
+
+    handleKey(that: EditArea, e: JQuery.Event<HTMLElement, null>): boolean {
+        if (e.keyCode === 89 && e.ctrlKey) {
+            e.preventDefault();
+            that.formatDoc("redo");
+            return false;
+        }
+        if (e.keyCode === 90 && e.ctrlKey) {
+            e.preventDefault();
+            that.formatDoc("undo");
+            return false;
+        }
+        return true;
     }
 
     updateEditor(): void {
@@ -146,7 +161,7 @@ export class EditArea {
     }
 
     getAlignment(): Align {
-        let alignment: string = this.getValueOfParentWithAttributeFromRange("align");
+        let alignment: string = this.getValueOfParentWithPropertyFromRange("text-align");
         switch (alignment) {
             case ("left"):
                 return Align.Left;
@@ -175,10 +190,22 @@ export class EditArea {
         this.saveSelection();
         switch (cmd) {
             case ("p"):
-                this.surroundRange("p");
+                this.surroundRange("p", true, true, true);
+                break;
+            case ("justifyleft"):
+                this.applyCSSToRange("text-align", "left", "p");
+                break;
+            case ("justifycenter"):
+                this.applyCSSToRange("text-align", "center", "p");
+                break;
+            case ("justifyright"):
+                this.applyCSSToRange("text-align", "right", "p");
+                break;
+            case ("justifyfull"):
+                this.applyCSSToRange("text-align", "justify", "p");
                 break;
             case ("justifyreset"):
-                this.removeAttributeFromRange("align");
+                this.removePropertyFromRange("text-align");
                 break;
             case ("undo"):
                 this.undoManager.undo();
@@ -203,43 +230,69 @@ export class EditArea {
         this.undoManager.onChange(this.undoManager);
     }
 
-    surroundRange(tagName: string): void {
+    surroundRange(tagName: string, toggle: boolean = true, clean: boolean = true, insertBR: boolean = true): HTMLElement {
         tagName = tagName.toLowerCase();
         let range: RangyRange = this.getFirstRange();
         if (range === undefined) {
-            return;
+            return undefined;
         }
         let element: HTMLElement = this.getParentWithTypeOfRange([tagName], range);
         if (element !== undefined) {
-            $(element).contents().unwrap();
-            return;
+            if (toggle) {
+                if (clean) {
+                    HTMLParsing.removeTagKeepAttributesRecursive(element);
+                } else {
+                    HTMLParsing.removeTagKeepAttributes(element);
+                }
+            }
+            return element;
         }
         let newElement: HTMLElement = document.createElement(tagName);
-
+        let wrapper: HTMLElement;
         if (range.collapsed) {
             let container: Node = this.getParentWithTypeOfRange([], range, ["strong", "em", "sub", "sup", "u", "strike"]);
             container = container === undefined ? this.getHighestNodeFromRange(range) : container;
-            this.surroundContainerWithElement(container, newElement, true, true);
+            wrapper = this.surroundContainerWithElement(container, newElement);
         } else {
 
             let children: Node[] = this.getNodesInRange(range, NodesInRange.ChildrenAll, [1, 3]);
 
             if (this.getNodesInRange(range, NodesInRange.Intersecting, [1]).length === 0) {
                 if (children.length === 1) {
-                    this.surroundContainerWithElement(children[0], newElement, true, true);
+                    wrapper = this.surroundContainerWithElement(children[0], newElement);
                 } else {
                     range.surroundContents(newElement);
-                    $(children).each((index, element) => HTMLParsing.removeTagKeepAttributesRecursive(element));
+                    wrapper = newElement;
                 }
             } else {
                 if (children.length === children[0].parentNode.childNodes.length) {
-                    this.surroundContainerWithElement(children[0].parentNode, newElement, true, true);
+                    wrapper = this.surroundContainerWithElement(children[0].parentNode, newElement);
                 } else {
-                    $(children).wrapAll(newElement);
-                    $(children).each((index, element) => HTMLParsing.removeTagKeepAttributesRecursive(element, [tagName], true));
+                    wrapper = $(children).wrapAll(newElement).parent()[0];
                 }
             }
         }
+        if (clean) {
+            if (wrapper.childNodes.length === 1) {
+                HTMLParsing.removeTagKeepAttributesRecursiveInsertBRChildren(wrapper.firstChild);
+            } else {
+                HTMLParsing.removeTagKeepAttributesChildren(wrapper, [tagName], insertBR);
+            }
+        }
+        return wrapper;
+    }
+
+    applyCSSToRange(property: string, value: string, tagName: string, cleanTag: boolean = true,
+        insertBR: boolean = true, cleanCSS: boolean = true): HTMLElement {
+        let element: HTMLElement = this.surroundRange(tagName, false, cleanTag, insertBR);
+        if (element === undefined) {
+            return undefined;
+        }
+        element.style[property] = value;
+        if (cleanCSS) {
+            HTMLParsing.removePropertyChildren(element, property);
+        }
+        return element;
     }
 
     changeDirection(direction: Direction): void {
@@ -252,10 +305,10 @@ export class EditArea {
                 let par: HTMLElement = $("<div/>").css("direction", "rtl")[0];
                 $(this.editor).contents().wrapAll(par);
             }
-            HTMLParsing.removeCSSPropertyChildren(this.editor.firstChild, "direction");
+            HTMLParsing.removePropertyChildren(this.editor.firstChild, "direction");
         } else {
             let firstChild: HTMLElement = HTMLParsing.castNodeToHTMLElement(this.editor.firstChild);
-            HTMLParsing.removeCSSPropertyChildren(this.editor, "direction");
+            HTMLParsing.removePropertyChildren(this.editor, "direction");
         }
     }
 
@@ -276,41 +329,30 @@ export class EditArea {
         }
     }
 
-    surroundContainerWithElement(container: Node, element: HTMLElement, removeTagInElement: boolean = false,
-        insertBR: boolean = false): void {
+    surroundContainerWithElement(container: Node, element: HTMLElement): HTMLElement {
         if (container === this.editor) {
-            $(this.editor).contents().wrapAll(element);
-            if (removeTagInElement) {
-                HTMLParsing.removeTagKeepAttributesChildren(<HTMLElement>this.editor.firstChild,
-                    [element.nodeName.toLowerCase()], insertBR);
-            }
+            return <HTMLElement>$(this.editor).contents().wrapAll(element).parent()[0];
         } else if (["span", "div"].indexOf(container.nodeName.toLowerCase()) !== -1) {
-            if (removeTagInElement) {
-                HTMLParsing.removeTagKeepAttributesChildren(<HTMLElement>container, [element.nodeName.toLowerCase()], insertBR);
-            }
-            HTMLParsing.replaceTag(<HTMLElement>container, element);
+            return HTMLParsing.replaceTag(<HTMLElement>container, element);
         } else if (container.parentNode.childNodes.length === 1) {
-            this.surroundContainerWithElement(container.parentNode, element, true, true);
+            return this.surroundContainerWithElement(container.parentNode, element);
         } else {
-            $(container).wrap(element);
-            if (removeTagInElement) {
-                HTMLParsing.removeTagKeepAttributesRecursive(<HTMLElement>container, [element.nodeName.toLowerCase()], insertBR);
-            }
+            return $(container).wrap(element).parent()[0];
         }
     }
 
-    removeCSSFromRange(property: string): void {
+    removePropertyFromRange(property: string): void {
         let range: RangyRange = this.getFirstRange();
         if (range === undefined) {
             return;
         }
         if (range.collapsed) {
-            let container: Node = this.getParentWithPropertyFromRange("align");
+            let container: Node = this.getParentWithPropertyFromRange(property);
             if (container !== undefined) {
-                HTMLParsing.removeAttributeRecursively(container, property);
+                HTMLParsing.removePropertyRecursively(container, property);
             }
         }
-        $(this.getNodesInRange(range, NodesInRange.All)).each((index, element) => HTMLParsing.removeCSSProperty(element, property));
+        $(this.getNodesInRange(range, NodesInRange.All)).each((index, element) => HTMLParsing.removeProperty(element, property));
     }
 
     removeAttributeFromRange(attribute: string): void {
@@ -319,7 +361,7 @@ export class EditArea {
             return;
         }
         if (range.collapsed) {
-            let container: Node = this.getParentWithAttributeFromRange("align");
+            let container: Node = this.getParentWithAttributeFromRange(attribute);
             if (container !== undefined) {
                 HTMLParsing.removeAttributeRecursively(container, attribute);
             }
@@ -427,25 +469,25 @@ export class EditArea {
             return undefined;
         }
         let container: Node = range.commonAncestorContainer;
-        if (container.nodeType === 1 &&(<HTMLElement>container).className !== "rangySelectionBoundary" &&
-        (nodeNames.length === 0 || nodeNames.indexOf(container.nodeName.toLowerCase()) !== -1) &&
+        if (container.nodeType === 1 && (<HTMLElement>container).className !== "rangySelectionBoundary" &&
+            (nodeNames.length === 0 || nodeNames.indexOf(container.nodeName.toLowerCase()) !== -1) &&
             (blackList.indexOf(container.nodeName.toLowerCase()) === -1)) {
             return <HTMLElement>container;
         }
         return this.getParentWithTypeOfNode(container, nodeNames, blackList);
     }
 
-    getParentWithTypeOfNode(container: Node, nodeNames: string[] = [], blackList: string[] = [],): HTMLElement {
-        let node: HTMLElement = undefined;
-        $(container).parentsUntil(this.editor).each((index: number, element: HTMLElement): false => {
-            if (container.nodeType === 1 &&(<HTMLElement>container).className !== "rangySelectionBoundary" &&
-            (nodeNames.length === 0 || nodeNames.indexOf(element.nodeName.toLowerCase()) !== -1) &&
-                (blackList.indexOf(container.nodeName.toLowerCase()) === -1)) {
-                node = element;
+    getParentWithTypeOfNode(node: Node, nodeNames: string[] = [], blackList: string[] = [], ): HTMLElement {
+        let parent: HTMLElement = undefined;
+        $(node).parentsUntil(this.editor).each((index: number, element: HTMLElement): false => {
+            if (element.nodeType === 1 && (<HTMLElement>element).className !== "rangySelectionBoundary" &&
+                (nodeNames.length === 0 || nodeNames.indexOf(element.nodeName.toLowerCase()) !== -1) &&
+                (blackList.indexOf(element.nodeName.toLowerCase()) === -1)) {
+                parent = element;
                 return false;
             }
         });
-        return node;
+        return parent;
     }
 
     getNodeExactelyInRangeWithType(nodeNames: string[] = [], range?: RangyRange): Node | undefined {

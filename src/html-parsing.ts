@@ -7,19 +7,19 @@ export class HTMLParsing {
         return undefined;
     }
 
-    static removeCSSPropertyRecursively(node: Node, property: string): void {
-        this.removeCSSProperty(node,property);
-        this.removeCSSPropertyChildren(node,property);
+    static removePropertyRecursively(node: Node, property: string): void {
+        this.removeProperty(node, property);
+        this.removePropertyChildren(node, property);
     }
 
-    static removeCSSPropertyChildren(node: Node, property: string): void {
+    static removePropertyChildren(node: Node, property: string): void {
         $(node).children().each((index, elem) => {
-            HTMLParsing.removeCSSProperty(elem,property);
-            HTMLParsing.removeCSSPropertyChildren(elem, property);
+            HTMLParsing.removeProperty(elem, property);
+            HTMLParsing.removePropertyChildren(elem, property);
         });
     }
 
-    static removeCSSProperty(node: Node, property: string): void {
+    static removeProperty(node: Node, property: string): void {
         let element: HTMLElement = HTMLParsing.castNodeToHTMLElement(node);
         if (element === undefined) {
             return;
@@ -30,13 +30,13 @@ export class HTMLParsing {
     }
 
     static removeAttributeRecursively(node: Node, attribute: string): void {
-        this.removeAttribute(node,attribute);
-        this.removeAttributeChildren(node,attribute);
+        this.removeAttribute(node, attribute);
+        this.removeAttributeChildren(node, attribute);
     }
 
     static removeAttributeChildren(node: Node, attribute: string): void {
         $(node).children().each((index, elem) => {
-            HTMLParsing.removeAttribute(elem,attribute);
+            HTMLParsing.removeAttribute(elem, attribute);
             HTMLParsing.removeAttributeChildren(elem, attribute);
         });
     }
@@ -53,19 +53,24 @@ export class HTMLParsing {
 
 
     static removeTagKeepAttributesRecursive(node: Node, nodeNames: string[] = [], insertBR: boolean = false,
-        attributes: string[] = ["style", "align"]): void {
+        attributes: string[] = ["style"]): void {
         HTMLParsing.removeTagKeepAttributes(node, nodeNames, insertBR, attributes);
         HTMLParsing.removeTagKeepAttributesChildren(node, nodeNames, insertBR, attributes);
     }
+    static removeTagKeepAttributesRecursiveInsertBRChildren(node: Node, nodeNames: string[] = [],
+        attributes: string[] = ["style"]): void {
+        HTMLParsing.removeTagKeepAttributes(node, nodeNames, false, attributes);
+        HTMLParsing.removeTagKeepAttributesChildren(node, nodeNames, true, attributes);
+    }
 
     static removeTagKeepAttributesChildren(node: Node, nodeNames: string[] = [], insertBR: boolean = false,
-        attributes: string[] = ["style", "align"]): void {
+        attributes: string[] = ["style"]): void {
         $(node).children().each((index, element) =>
             HTMLParsing.removeTagKeepAttributesRecursive(element, nodeNames, insertBR, attributes));
     }
 
     static removeTagKeepAttributes(node: Node, nodeNames: string[] = [], insertBR: boolean = false,
-        attributes: string[] = ["style", "align"]): void {
+        attributes: string[] = ["style"]): void {
         let element: HTMLElement = HTMLParsing.castNodeToHTMLElement(node);
         if (element === undefined) {
             return;
@@ -81,11 +86,11 @@ export class HTMLParsing {
         HTMLParsing.replaceTag(element, span, attributes);
     }
 
-    static cleanUpTag(node: Node, nodeNames: string[] = [], attributes: string[] = ["style", "align"],
+    static cleanUpTag(node: Node, nodeNames: string[] = [], attributes: string[] = ["style"],
         insertBR: boolean = false): boolean {
         let element: HTMLElement = HTMLParsing.castNodeToHTMLElement(node);
         if (element === undefined || element.className === "rangySelectionBoundary"
-        || (nodeNames.length > 0 && nodeNames.indexOf(element.nodeName.toLowerCase()) === -1)) {
+            || (nodeNames.length > 0 && nodeNames.indexOf(element.nodeName.toLowerCase()) === -1)) {
             return true;
         }
         if (insertBR) {
@@ -99,15 +104,19 @@ export class HTMLParsing {
             }
         });
         if (unwrap) {
-            $(element).contents().unwrap();
+            if ($(element).contents().length > 0) {
+                $(element).contents().unwrap();
+            } else {
+                $(element).remove();
+            }
         }
         return unwrap;
     }
 
-    static replaceTag(node: Node, newElement: HTMLElement, attributes: string[] = ["style", "align"]): void {
+    static replaceTag(node: Node, newElement: HTMLElement, attributes: string[] = ["style"]): HTMLElement {
         let element: HTMLElement = HTMLParsing.castNodeToHTMLElement(node);
         if (element === undefined || element.className === "rangySelectionBoundary") {
-            return;
+            return undefined;
         }
         attributes.forEach((attr) => {
             let val: string = element.getAttribute(attr);
@@ -115,7 +124,12 @@ export class HTMLParsing {
                 newElement.setAttribute(attr, element.getAttribute(attr));
             }
         });
-        $(element).contents().unwrap().wrapAll(newElement);
+        if ($(element).contents().length > 0) {
+            return <HTMLElement>$(element).contents().unwrap().wrapAll(newElement).parent()[0];
+        } else {
+            $(element).remove();
+            return undefined;
+        }
     }
 
     static replaceCSS(node: Node): void {
@@ -123,8 +137,6 @@ export class HTMLParsing {
         HTMLParsing.replaceCSSWithMarkUp(node, "fontStyle", { italic: $("<em/>") });
         HTMLParsing.replaceCSSWithMarkUp(node, "textDecoration", { underline: $("<u/>"), "line-through": $("<strike/>") });
         HTMLParsing.replaceCSSWithMarkUp(node, "verticalAlign", { sub: $("<sub/>"), super: $("<sup/>") });
-        HTMLParsing.replaceCSSWithAttribute(node, "text-align", "align",
-            { left: "left", center: "center", right: "right", justify: "justify" });
         HTMLParsing.cleanUpTag(node, ["span", "div"]);
     }
 
