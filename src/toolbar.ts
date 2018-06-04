@@ -45,7 +45,8 @@ export class Toolbar {
         this.renderItems();
         this.setMode(ActiveMode.Design);
         let listener: () => boolean = () => { this.checkState(); return true; };
-        $(this.editArea.editor).mouseup(listener).mouseup(listener).keydown(listener).keyup(listener).blur(() => this.resetToolbar());
+        $(this.editArea.editor).mouseup(listener).mouseup(listener).keydown(listener).keyup(listener)
+        .focus(listener).blur(() => this.resetToolbar());
     }
 
     renderItems(): void {

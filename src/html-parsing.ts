@@ -41,7 +41,7 @@ export class HTMLParsing {
                                         }
                                     );
                             } else {
-                                group.push(element);
+                                group.push(el);
                             }
                         });
                     } else {
