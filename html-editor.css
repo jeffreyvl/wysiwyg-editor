@@ -210,16 +210,15 @@ div.html-editor div.toolbar ul li button.pasteword:active { background: url(butt
 
 div.html-editor div.toolbar ul li button.indent { background: url(buttons/images/indentmore-inactive.gif) }
 
-div.html-editor div.toolbar ul li button.indent.active { background: url(buttons/images/indentmore-active.gif) }
+div.html-editor div.toolbar ul li button.indent:active { background: url(buttons/images/indentmore-active.gif) }
 
 div.html-editor div.toolbar ul li button.outdent { background: url(buttons/images/indentless-inactive.gif) }
 
-div.html-editor div.toolbar ul li button.outdent.active { background: url(buttons/images/indentless-active.gif) }
+div.html-editor div.toolbar ul li button.outdent:active { background: url(buttons/images/indentless-active.gif) }
 
 div.html-editor div.toolbar ul li button.paragraph { background: url(buttons/images/formatparagraph-inactive.gif) }
 
 div.html-editor div.toolbar ul li button.paragraph.active { background: url(buttons/images/formatparagraph-active.gif) }
-
 
 div.html-editor div.toolbar ul li button.justifyleft { background: url(buttons/images/alignleft-inactive.gif) }
 

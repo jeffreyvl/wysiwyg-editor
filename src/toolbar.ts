@@ -1,8 +1,8 @@
 import { EditArea } from "./edit-area";
 import { Dictionary, ActiveMode, ToolbarOptions, Direction } from "./util";
-import { ItemToCheck, ToolbarItem, ColorPickerItem } from "./toolbar-item";
+import { ItemToCheck, ToolbarItem, ColorPickerItem, DropwdownItem } from "./toolbar-item";
 import {ToolbarButtonBase, ToolbarButtonExecCommand,
-    ToolbarButtonExecCommandCheck, ToggleViewButton,
+    ToolbarButtonExecCommandCheck, ToggleViewButton, CreateLink,
 } from "./toolbar-button";
 
 export class Toolbar {
@@ -33,6 +33,8 @@ export class Toolbar {
             "forecolor", "resetforecolor", "|",
             "backcolor", "resetbackcolor", "|",
             "removeformat", "|",
+            "font", "|",
+            "size", "|",
             "cut", "copy", "paste", "pastetext", "pasteword","|",
             "outdent", "indent","|",
             "paragraph", "justifyleft", "justifycenter", "justifyright", "justifyfull", "justifyreset", "|",
@@ -125,8 +127,8 @@ export class Toolbar {
         this.toolbarItems.cut = new ToolbarButtonExecCommand("cut", "Knippen", this);
         this.toolbarItems.copy = new ToolbarButtonExecCommand("copy", "Kopiëren", this);
         this.toolbarItems.paste = new ToolbarButtonExecCommand("paste", "Plakken", this);
-        this.toolbarItems.pastetext = new ToolbarButtonExecCommand("paste", "Tekst plakken", this);
-        this.toolbarItems.pasteword = new ToolbarButtonExecCommand("paste", "MS Word plakken", this);
+        this.toolbarItems.pastetext = new ToolbarButtonExecCommand("pastetext", "Tekst plakken", this);
+        this.toolbarItems.pasteword = new ToolbarButtonExecCommand("pasteword", "MS Word plakken", this);
         this.toolbarItems.outdent = new ToolbarButtonExecCommand("outdent", "Inspringen verkleinen", this);
         this.toolbarItems.indent = new ToolbarButtonExecCommand("indent", "Inspringen vergroten", this);
         this.toolbarItems.justifyleft = new ToolbarButtonExecCommandCheck("justifyleft", "Tekst links uitlijnen", this);
@@ -142,13 +144,13 @@ export class Toolbar {
         this.toolbarItems.unorderedlist = new ToolbarButtonExecCommand("unorderedlist", "Opsommingstekens", this, "insertunorderedlist");
         this.toolbarItems.horizontalrule = new ToolbarButtonExecCommand("horizontalrule", "Horizontale lijn toevoegen",
                                                                         this, "insertHorizontalRule");
-        this.toolbarItems.link = new ToolbarButtonExecCommand("link", "Link toevoegen", this, "createlink");
+        this.toolbarItems.link = new CreateLink("link", "Link toevoegen", this);
         this.toolbarItems.unlink = new ToolbarButtonExecCommand("unlink", "Link verwijderen", this, "unlink");
 
         this.toolbarItems.resetbackcolor = new ToolbarButtonExecCommand("resetbackcolor", "Markering verwijderen",
-            this, "backcolor", "#FFFFFF");
+            this, "removeformat", "backcolor");
         this.toolbarItems.resetforecolor = new ToolbarButtonExecCommand("resetforecolor", "Tekstkleur verwijderen",
-            this, "forecolor", "#000000");
+            this, "removeformat", "backcolor");
         this.toolbarItems.bold = new ToolbarButtonExecCommandCheck("bold", "Vet", this);
         this.toolbarItems.italic = new ToolbarButtonExecCommandCheck("italic", "Cursief", this);
         this.toolbarItems.underline = new ToolbarButtonExecCommandCheck("underline", "Onderstrepen", this);
@@ -162,5 +164,27 @@ export class Toolbar {
         this.toolbarItems.html = new ToggleViewButton(ActiveMode.Html, "html", "HTML Opmaken", this);
         this.toolbarItems.design = new ToggleViewButton(ActiveMode.Design, "design", "Ontwerpen", this);
         this.toolbarItems.preview = new ToggleViewButton(ActiveMode.Preview, "preview", "Voorbeeld", this);
+
+        let fontOptions :Dictionary<string|number> = new Dictionary();
+        fontOptions.defualt = "default";
+        fontOptions.Arial = "courier new,courier,monospace";
+        fontOptions["Courier New"] = "georgia,times new roman,times,serif";
+        fontOptions.Georgia = "georgia,times new roman,times,serif";
+        fontOptions.Tahoma = "tahoma,arial,helvetica,sans-serif";
+        fontOptions["Times New Roman"] = "times new roman,times,serif";
+        fontOptions.Verdana = "verdana,arial,helvetica,sans-serif   ";
+        fontOptions.Impact = "impact";
+        fontOptions.WingDings = "wingdings";
+        let sizeOptions :Dictionary<string|number> = new Dictionary();
+        sizeOptions.default = "default";
+        sizeOptions["1 (8pt)"] = 1;
+        sizeOptions["2 (10pt)"] = 2;
+        sizeOptions["3 (12pt)"] = 3;
+        sizeOptions["4 (14pt)"] = 4;
+        sizeOptions["5 (18pt)"] = 5;
+        sizeOptions["6 (24pt)"] = 6;
+        sizeOptions["7 (36pt)"] = 7;
+        this.toolbarItems.font = new DropwdownItem("font", "Lettertype", this, fontOptions, "fontName");
+        this.toolbarItems.size = new DropwdownItem("size", "Grootte", this, sizeOptions, "fontSize");
     }
 }
