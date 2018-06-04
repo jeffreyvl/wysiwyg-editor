@@ -300,11 +300,12 @@ export class EditArea {
 
     createLink(url: string, target: string): any {
         this.editor.focus();
+        this.restoreSelection();
         let range: RangyRange = this.getFirstRange();
         if (range === undefined) {
             return;
         }
-        let link: HTMLElement = $("</a>").attr("href", url).attr("target", target).attr("shapte", "rect")[0];
+        let link: Node = $("<a/>").attr("href", url).attr("target", target).attr("shape", "rect")[0];
         if (range.collapsed) {
             $(link).text("new link");
             this.insertNodeAtRange(link);
@@ -360,7 +361,7 @@ export class EditArea {
             let flag: boolean = false;
             group.forEach((value) => {
                 let temp: any = value;
-                while (!flag || temp !== undefined || temp !== this.editor) {
+                while (!flag && temp !== undefined && temp !== this.editor) {
                     if (children.indexOf(temp) !== -1) {
                         flag = true;
                     }
