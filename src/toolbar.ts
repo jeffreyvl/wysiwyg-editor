@@ -1,7 +1,8 @@
 import { EditArea } from "./edit-area";
 import { Dictionary, ActiveMode, ToolbarOptions, Direction } from "./util";
 import { ItemToCheck, ToolbarItem, ColorPickerItem, DropwdownItem } from "./toolbar-item";
-import {ToolbarButtonBase, ToolbarButtonExecCommand,
+import {
+    ToolbarButtonBase, ToolbarButtonExecCommand,
     ToolbarButtonExecCommandCheck, ToggleViewButton, CreateLink,
 } from "./toolbar-button";
 
@@ -10,12 +11,13 @@ export class Toolbar {
     buttonContainer: HTMLElement;
     bottomButtonContainer: HTMLElement;
     editArea: EditArea;
-    mode:ActiveMode|undefined = undefined;
+    mode: ActiveMode | undefined = undefined;
     toolbarItems: Dictionary<ToolbarItem> = new Dictionary();
     options: ToolbarOptions;
     simpleOptions: string[];
     fullOptions: string[];
     bottomOptions: string[];
+    popup: ToolbarItem = undefined;
     constructor(toolbar: HTMLElement, bottomToolbar: HTMLElement, editArea: EditArea, options: ToolbarOptions) {
         if (toolbar.nodeName !== "DIV" || bottomToolbar.nodeName !== "DIV") {
             throw Error("Invalid HTMLElement");
@@ -35,8 +37,8 @@ export class Toolbar {
             "removeformat", "|",
             "font", "|",
             "size", "|",
-            "cut", "copy", "paste", "pastetext", "pasteword","|",
-            "outdent", "indent","|",
+            "cut", "copy", "paste", "pastetext", "pasteword", "|",
+            "outdent", "indent", "|",
             "paragraph", "justifyleft", "justifycenter", "justifyright", "justifyfull", "justifyreset", "|",
             "orderedlist", "unorderedlist", "|",
             "horizontalrule", "link", "unlink"];
@@ -46,9 +48,28 @@ export class Toolbar {
         this.setMode(ActiveMode.Design);
         let listener: () => boolean = () => { this.checkState(); return true; };
         $(this.editArea.editor).mouseup(listener).mouseup(listener).keydown(listener).keyup(listener)
-        .focus(listener).blur(() => this.resetToolbar());
+            .focus(listener).blur(() => this.resetToolbar());
     }
 
+    registerPopup(item: ToolbarItem): void {
+        if (this.popup === item) {
+            return;
+        }
+        if (this.popup === undefined) {
+            this.popup = item;
+            return;
+        }
+        if ((<any>this.popup).close) {
+            (<any>this.popup).close();
+        }
+        this.popup = item;
+    }
+
+    unRegisterPopup(item: ToolbarItem): void {
+        if (this.popup === item) {
+            this.popup = undefined;
+        }
+    }
     renderItems(): void {
         $(this.buttonContainer).empty();
         let items: string[] = this.options === ToolbarOptions.Simple ? this.simpleOptions : this.fullOptions;
@@ -69,9 +90,13 @@ export class Toolbar {
         this.checkState();
     }
 
-    setMode(mode:ActiveMode):boolean {
+    setMode(mode: ActiveMode): boolean {
         if (this.mode === mode || mode === undefined) {
             return false;
+        }
+        if (this.popup !== undefined && (<any>this.popup).close && mode!== ActiveMode.Design) {
+            (<any>this.popup).close();
+            this.popup = undefined;
         }
         this.mode = mode;
         this.updateVisibilityToolbar();
@@ -87,7 +112,7 @@ export class Toolbar {
         this.toggleViewButtons();
     }
 
-    toggleViewButtons():void {
+    toggleViewButtons(): void {
         (<ToolbarButtonBase>this.toolbarItems.design).removeActive();
         (<ToolbarButtonBase>this.toolbarItems.html).removeActive();
         (<ToolbarButtonBase>this.toolbarItems.preview).removeActive();
@@ -116,7 +141,9 @@ export class Toolbar {
     resetToolbar(): void {
         for (let key of Object.keys(this.toolbarItems)) {
             if (this.toolbarItems[key] instanceof ToolbarButtonBase) {
-                (<ToolbarButtonBase>this.toolbarItems[key]).removeActive();
+                if (["html", "design", "preview"].indexOf(key) === -1) {
+                    (<ToolbarButtonBase>this.toolbarItems[key]).removeActive();
+                }
             }
         }
     }
@@ -137,21 +164,19 @@ export class Toolbar {
         this.toolbarItems.justifyright = new ToolbarButtonExecCommandCheck("justifyright", "Tekst rechts uitlijnen", this);
         this.toolbarItems.justifyfull = new ToolbarButtonExecCommandCheck("justifyfull", "Uitvullen", this);
         this.toolbarItems.justifyreset = new ToolbarButtonExecCommandCheck("justifyreset", "Uitlijnen wissen",
-                                                                            this);
-        // this.toolbarItems.paragraph = new CustomButtonCheck("paragraph", "Paragraaf maken", this,
-        // () => this.editArea.surroundRange("p"), () => this.editArea.checkParagraph());
-        this.toolbarItems.paragraph = new ToolbarButtonExecCommandCheck("paragraph", "Paragraaf maken", this,"p");
+            this);
+        this.toolbarItems.paragraph = new ToolbarButtonExecCommandCheck("paragraph", "Paragraaf maken", this, "p");
         this.toolbarItems.orderedlist = new ToolbarButtonExecCommand("orderedlist", "Nummering", this, "insertorderedlist");
         this.toolbarItems.unorderedlist = new ToolbarButtonExecCommand("unorderedlist", "Opsommingstekens", this, "insertunorderedlist");
         this.toolbarItems.horizontalrule = new ToolbarButtonExecCommand("horizontalrule", "Horizontale lijn toevoegen",
-                                                                        this, "insertHorizontalRule");
+            this, "insertHorizontalRule");
         this.toolbarItems.link = new CreateLink("link", "Link toevoegen", this);
         this.toolbarItems.unlink = new ToolbarButtonExecCommand("unlink", "Link verwijderen", this, "unlink");
 
         this.toolbarItems.resetbackcolor = new ToolbarButtonExecCommand("resetbackcolor", "Markering verwijderen",
-            this, "removeformat", "backcolor");
+            this);
         this.toolbarItems.resetforecolor = new ToolbarButtonExecCommand("resetforecolor", "Tekstkleur verwijderen",
-            this, "removeformat", "backcolor");
+            this);
         this.toolbarItems.bold = new ToolbarButtonExecCommandCheck("bold", "Vet", this);
         this.toolbarItems.italic = new ToolbarButtonExecCommandCheck("italic", "Cursief", this);
         this.toolbarItems.underline = new ToolbarButtonExecCommandCheck("underline", "Onderstrepen", this);
@@ -166,7 +191,7 @@ export class Toolbar {
         this.toolbarItems.design = new ToggleViewButton(ActiveMode.Design, "design", "Ontwerpen", this);
         this.toolbarItems.preview = new ToggleViewButton(ActiveMode.Preview, "preview", "Voorbeeld", this);
 
-        let fontOptions :Dictionary<string|number> = new Dictionary();
+        let fontOptions: Dictionary<string | number> = new Dictionary();
         fontOptions.defualt = "default";
         fontOptions.Arial = "courier new,courier,monospace";
         fontOptions["Courier New"] = "georgia,times new roman,times,serif";
@@ -176,7 +201,7 @@ export class Toolbar {
         fontOptions.Verdana = "verdana,arial,helvetica,sans-serif   ";
         fontOptions.Impact = "impact";
         fontOptions.WingDings = "wingdings";
-        let sizeOptions :Dictionary<string|number> = new Dictionary();
+        let sizeOptions: Dictionary<string | number> = new Dictionary();
         sizeOptions.default = "default";
         sizeOptions["1 (8pt)"] = 1;
         sizeOptions["2 (10pt)"] = 2;

@@ -4,18 +4,16 @@ declare function require(name: string);
 var debounce = require("lodash.debounce");
 import { ActiveMode, Direction, CaretPosition, NodesInRange, Align } from "./util";
 import rangy from "rangy/lib/rangy-core.js";
-import "rangy/lib/rangy-highlighter";
-import "rangy/lib/rangy-classapplier";
-import "rangy/lib/rangy-textrange";
-import "rangy/lib/rangy-serializer";
 import "rangy/lib/rangy-selectionsaverestore";
 import { formatHtmlString } from "./helper";
 import { HTMLParsing } from "./html-parsing";
 import { UndoManager } from "./undo-manager";
 import wordFilter from "tinymce-word-paste-filter";
+import "./rangyinputs";
 
 export class EditArea {
 
+    mode: ActiveMode;
     savedSelection: RangySelection;
     savedSelectionActiveElement: Element;
     previousRange: Range;
@@ -23,7 +21,7 @@ export class EditArea {
     editor: HTMLDivElement;
     undoManager: UndoManager;
     pasteAsPlainText: boolean = false;
-    markUpNodeNames: string[] = ["strong", "em", "sub", "sup", "u", "strike"];
+    readonly markUpNodeNames: string[] = ["strong", "em", "sub", "sup", "u", "strike"];
     constructor(textArea: HTMLElement, editor: HTMLElement) {
         if (textArea.nodeName !== "TEXTAREA" || editor.nodeName !== "DIV") {
             throw Error("Invalid HTMLElements");
@@ -34,12 +32,22 @@ export class EditArea {
         rangy.init();
         this.updateEditor();
         this.undoManager = new UndoManager(this);
+        this.addHandlers();
+    }
+
+    addHandlers(): void {
         let fn: () => boolean = () => { return this.undoManager.onChange(this.undoManager); };
         $(this.editor).keyup(debounce(fn, 500, { "maxWait": 2000 })).mouseup(fn).blur(fn).on("paste", fn).on("cut", fn);
         $(this.editor).keydown(e => this.handleKeyDown(this, e));
         $(this.editor).keyup(e => this.handleKeyUp(this, e));
         $(this.editor).on("paste", e => this.paste(this, e));
+    }
 
+    focus(): void {
+        if ($(this.editor).is(":focus")) {
+            return;
+        }
+        $(this.editor).focus();
     }
 
     paste(that: EditArea, e: JQuery.Event<HTMLElement, null>): boolean {
@@ -82,10 +90,11 @@ export class EditArea {
 
     updateEditor(): void {
         this.setHTML($(this.textArea).val().toString());
-        this.CleanUpCSS();
+        this.ReplaceCSS();
     }
 
     updateTextArea(): void {
+        this.cleanUpHTML();
         $(this.textArea).val(formatHtmlString(this.getHTML()));
     }
 
@@ -96,13 +105,21 @@ export class EditArea {
         return $(this.editor).html();
     }
 
-    CleanUpCSS(): void {
+    ReplaceCSS(): void {
         $(this.editor).find("*").each((index, element) => {
             HTMLParsing.replaceCSS(element);
+            HTMLParsing.cleanUpHTML(element);
         });
     }
 
-    updateMode(mode: ActiveMode): boolean {
+    cleanUpHTML(): void {
+        $(this.editor).find("*").each((index, element) => {
+            HTMLParsing.cleanUpHTML(element);
+        });
+    }
+
+    updateMode(mode: ActiveMode): void {
+        this.mode = mode;
         if (mode === ActiveMode.Html) {
             this.updateTextArea();
             $(this.editor).hide();
@@ -110,18 +127,18 @@ export class EditArea {
         } else {
             this.updateEditor();
             $(this.textArea).hide();
-            $(this.editor).show().focus();
+            $(this.editor).show();
+            this.focus();
         }
         if (mode === ActiveMode.Preview) {
             this.editor.contentEditable = "false";
         } else {
             this.editor.contentEditable = "true";
         }
-        return true;
     }
 
     getFirstRange(): RangyRange {
-        this.editor.focus();
+        this.focus();
         let sel: RangySelection = rangy.getSelection();
         return sel.rangeCount ? sel.getRangeAt(0) : undefined;
     }
@@ -174,7 +191,7 @@ export class EditArea {
     }
 
     checkState(cmd: string): boolean {
-        this.editor.focus();
+        this.focus();
         switch (cmd) {
             case ("p"):
                 return this.checkParagraph();
@@ -236,7 +253,8 @@ export class EditArea {
     }
 
     formatDoc(cmd: string, showUI?: boolean, value?: any): void {
-        this.editor.focus();
+        this.focus();
+        this.restoreSelection();
         switch (cmd) {
             case ("p"):
                 HTMLParsing.removePropertyRecursively(this.surroundRange("p", true, true, true), "text-align");
@@ -254,7 +272,7 @@ export class EditArea {
                 this.applyPropertyToRange("text-align", "justify", "p");
                 break;
             case ("justifyreset"):
-                this.removePropertyFromRange("text-align");
+                this.removePropertyFromRange("text-align",NodesInRange.All);
                 break;
             case ("undo"):
                 this.undoManager.undo();
@@ -288,18 +306,32 @@ export class EditArea {
                 this.formatDoc("paste");
                 this.setHTML(wordFilter(this.getHTML()));
                 break;
+            case ("resetforecolor"):
+                this.formatDoc("forecolor", undefined, "");
+                break;
+            case ("resetbackcolor"):
+                this.formatDoc("backcolor", undefined, "");
+                break;
+            case ("forecolor"):
+                this.removeAttributeFromRange("color", NodesInRange.InsideWithText);
+                document.execCommand("forecolor", showUI, value);
+                break;
+            case ("backcolor"):
+                this.removePropertyFromRange("background-color",NodesInRange.InsideWithText);
+                document.execCommand("backcolor", showUI, value);
+                break;
             default:
                 if (document.queryCommandEnabled(cmd)) {
                     document.execCommand(cmd, showUI, value);
                 }
                 break;
         }
-        this.editor.focus();
+        this.focus();
         this.undoManager.onChange(this.undoManager);
     }
 
     createLink(url: string, target: string): any {
-        this.editor.focus();
+        this.focus();
         this.restoreSelection();
         let range: RangyRange = this.getFirstRange();
         if (range === undefined) {
@@ -310,7 +342,7 @@ export class EditArea {
             $(link).text("new link");
             this.insertNodeAtRange(link);
         } else {
-            range.surroundContents(link);
+            this.surroundContents(link);
         }
     }
 
@@ -375,6 +407,19 @@ export class EditArea {
         return result;
     }
 
+    surroundContents(node: Node, range?: RangyRange): void {
+        if (range === undefined) {
+            range = this.getFirstRange();
+        }
+        if (range === undefined || range.collapsed) {
+            return;
+        }
+        try {
+            range.surroundContents(node);
+        } catch {
+            $(this.getNodesInRange(range, NodesInRange.ChildrenAll)).wrapAll($(node));
+        }
+    }
     surroundRange(tagName: string, toggle: boolean = true, clean: boolean = true, insertBR: boolean = true): HTMLElement {
         this.saveSelection();
         tagName = tagName.toLowerCase();
@@ -501,6 +546,16 @@ export class EditArea {
             this.insertNodeAtRange(lastBreak, CaretPosition.Before);
         }
     }
+    insertText(value: string): void {
+        let mode: ActiveMode = this.mode;
+        if (mode === ActiveMode.Design) {
+            this.focus();
+            this.insertHTMLAtRange(value);
+        }
+        if (mode === ActiveMode.Html) {
+            (<any>$(this.textArea).focus()).replaceSelectedText(value, "collapseToEnd");
+        }
+    }
     insertHTMLAtRange(value: string, caretPosition: CaretPosition = CaretPosition.After): void {
         let span: HTMLElement = $("<span/>").html(value)[0];
         this.insertNodeAtRange(span, CaretPosition.After);
@@ -508,6 +563,7 @@ export class EditArea {
     }
     insertNodeAtRange(node: Node, caretPosition: CaretPosition = CaretPosition.After): void {
         let range: RangyRange = this.getFirstRange();
+
         if (!range) {
             return;
         }
@@ -569,7 +625,7 @@ export class EditArea {
         }
     }
 
-    removePropertyFromRange(property: string): void {
+    removePropertyFromRange(property: string, nodesInRange:NodesInRange): void {
         let range: RangyRange = this.getFirstRange();
         if (range === undefined) {
             return;
@@ -580,10 +636,10 @@ export class EditArea {
                 HTMLParsing.removePropertyRecursively(container, property);
             }
         }
-        $(this.getNodesInRange(range, NodesInRange.All)).each((index, element) => HTMLParsing.removeProperty(element, property));
+        $(this.getNodesInRange(range, nodesInRange)).each((index, element) => HTMLParsing.removeProperty(element, property));
     }
 
-    removeAttributeFromRange(attribute: string): void {
+    removeAttributeFromRange(attribute: string, nodesInRange:NodesInRange): void {
         let range: RangyRange = this.getFirstRange();
         if (range === undefined) {
             return;
@@ -594,7 +650,7 @@ export class EditArea {
                 HTMLParsing.removeAttributeRecursively(container, attribute);
             }
         }
-        $(this.getNodesInRange(range, NodesInRange.All)).each((index, element) => HTMLParsing.removeAttribute(element, attribute));
+        $(this.getNodesInRange(range, nodesInRange)).each((index, element) => HTMLParsing.removeAttribute(element, attribute));
     }
 
     getNodesInRange(range?: RangyRange, position: NodesInRange = NodesInRange.All, nodeTypes: number[] = [1]): Node[] {
@@ -611,13 +667,22 @@ export class EditArea {
         if (position === NodesInRange.Intersecting) {
             sorting = (node) => { return !range.containsNodeContents(node); };
         }
+        if (position === NodesInRange.IntersectingWithText) {
+            sorting = (node) => { return !range.containsNodeText(node); };
+        }
         if (position === NodesInRange.Inside) {
             sorting = (node) => { return range.containsNodeContents(node); };
+        }
+        if (position === NodesInRange.InsideWithText) {
+            sorting = (node) => { return range.containsNodeText(node); };
         }
         if (position === NodesInRange.ChildrenAll) {
             sorting = (node) => { return node.parentNode === container; };
         }
-        if (position === NodesInRange.Inside) {
+        if (position === NodesInRange.ChildrenInside) {
+            sorting = (node) => { return node.parentNode === container && range.containsNodeContents(node); };
+        }
+        if (position === NodesInRange.ChildrenInsideWithText) {
             sorting = (node) => { return node.parentNode === container && range.containsNodeText(node); };
         }
         nodes = range.getNodes(nodeTypes, sorting);
