@@ -1,5 +1,5 @@
 import { Direction, ActiveMode } from "./util";
-import { ToolbarItem, ItemToCheck } from "./toolbar-item";
+import { ToolbarItem, ItemToCheck, ItemWithPopup } from "./toolbar-item";
 import { Toolbar } from "./toolbar";
 
 export abstract class ToolbarButtonBase extends ToolbarItem {
@@ -7,11 +7,9 @@ export abstract class ToolbarButtonBase extends ToolbarItem {
     button: HTMLElement;
     constructor(name: string, text: string, toolbar: Toolbar) {
         super(toolbar);
-        this.button = $("<button/>").addClass(name).attr("title", text).click(e => this.execute(e))[0];
+        this.button = $("<button/>").addClass(name).attr("title", text).click(e => {e.preventDefault();this.execute();return false;})[0];
         $(this.container).append(this.button);
     }
-
-    abstract execute(e: JQuery.Event<HTMLElement, null>): boolean;
 
     setActive(): void {
         $(this.button).addClass("active");
@@ -32,12 +30,9 @@ export class ToolbarButtonExecCommand extends ToolbarButtonBase {
         this.command = command ? command : name;
         this.argument = argument;
     }
-    execute(e: JQuery.Event<HTMLElement, null>): boolean {
-        e.preventDefault();
+    execute(): void {
         this.toolbar.editArea.formatDoc(this.command, false, this.argument);
         this.toolbar.checkState();
-        return true;
-
     }
 }
 
@@ -54,15 +49,14 @@ export class ToggleViewButton extends ToolbarButtonBase {
         super(name, text, toolbar);
         this.activeMode = activeMode;
     }
-    execute(): boolean {
+    execute(): void {
         if (this.toolbar.setMode(this.activeMode) && this.activeMode === ActiveMode.Design) {
             this.toolbar.checkState();
         }
-        return false;
     }
 }
 
-export class CreateLink extends ToolbarButtonBase {
+export class CreateLink extends ToolbarButtonBase implements ItemWithPopup {
 
     popup: HTMLElement;
     select: HTMLElement;
@@ -70,50 +64,61 @@ export class CreateLink extends ToolbarButtonBase {
     cancelButton: HTMLElement;
     okButton: HTMLElement;
     urlPlaceHolder: string = "https://";
+    popupShown: boolean = false;
     constructor(name: string, text: string, toolbar: Toolbar) {
         super(name, text, toolbar);
         this.popup = $("<div/>").addClass("popup").addClass("group").hide().appendTo(this.container)[0];
         this.cancelButton = $("<button/>").text("Cancel").addClass("popup")[0];
         this.okButton = $("<button/>").text("OK").addClass("popup")[0];
         this.createForm();
-        $(this.okButton).click((e) => this.okClick(this, e));
+        this.addHandlers();
+    }
+
+    execute(): void {
+        this.open();
+    }
+
+    addHandlers():void {
+        $(this.okButton).click((e) => {e.preventDefault();this.okClick();return false;});
         $(this.cancelButton).click((e) => this.cancelClick(this, e));
     }
 
-    execute(): boolean {
-        this.toolbar.editArea.saveSelection();
-        $(this.popup).show();
-        this.textBox.focus();
-        this.toolbar.editArea.editor.contentEditable = "false";
-        return true;
-    }
-
-    okClick(that: CreateLink, e: JQuery.Event<HTMLElement, null>): boolean {
-        e.preventDefault();
-        let url: string = <string>$(that.textBox).val();
-        let target: string = <string>$(that.select).val();
-        if (url === that.urlPlaceHolder) {
-            return false;
+    okClick(): void {
+        let url: string = <string>$(this.textBox).val();
+        let target: string = <string>$(this.select).val();
+        if (url === this.urlPlaceHolder) {
+            alert("Geen link opgegeven.");
+            return;
         }
-        that.clearForm();
-        this.toolbar.editArea.editor.contentEditable = "true";
-        that.toolbar.editArea.createLink(url, target);
-        return false;
+        this.close();
+        this.toolbar.editArea.createLink(url, target);
     }
 
     cancelClick(that: CreateLink, e: JQuery.Event<HTMLElement, null>): boolean {
         e.preventDefault();
-        that.clearForm();
-        this.toolbar.editArea.editor.contentEditable = "true";
-        that.toolbar.editArea.editor.focus();
-        that.toolbar.editArea.restoreSelection();
+        that.close();
         return false;
     }
 
     clearForm(): void {
-        $(this.popup).hide();
         $(this.select).val("_blank");
         $(this.textBox).val(this.urlPlaceHolder);
+    }
+
+    close(): void {
+        this.clearForm();
+        $(this.popup).hide();
+        this.toolbar.unRegisterPopup(this);
+        this.toolbar.editArea.editor.contentEditable = "true";
+        this.toolbar.editArea.restoreSelection();
+    }
+
+    open(): void {
+        this.toolbar.registerPopup(this);
+        this.toolbar.editArea.saveSelection();
+        this.toolbar.editArea.editor.contentEditable = "false";
+        $(this.popup).show();
+        this.textBox.focus();
     }
 
     createForm(): void {

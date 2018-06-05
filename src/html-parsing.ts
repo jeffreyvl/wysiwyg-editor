@@ -149,7 +149,6 @@ export class HTMLParsing {
         if (element === undefined || element.className === "rangySelectionBoundary") {
             return true;
         }
-        HTMLParsing.removeDefaultCSS(element);
         if (nodeNames.length > 0 && nodeNames.indexOf(element.nodeName.toLowerCase()) === -1) {
             return true;
         }
@@ -214,20 +213,28 @@ export class HTMLParsing {
         return value;
     }
 
+    static removePropertyIfDefaultValue(value: string, defaultValues:string[]): string {
+        if (defaultValues.indexOf(value) !== -1) {
+            return "";
+        }
+        return value;
+    }
     static replaceCSS(node: Node): void {
         HTMLParsing.replaceCSSWithMarkUp(node, "fontWeight", { bold: $("<strong/>") });
         HTMLParsing.replaceCSSWithMarkUp(node, "fontStyle", { italic: $("<em/>") });
         HTMLParsing.replaceCSSWithMarkUp(node, "textDecoration", { underline: $("<u/>"), "line-through": $("<strike/>") });
         HTMLParsing.replaceCSSWithMarkUp(node, "verticalAlign", { sub: $("<sub/>"), super: $("<sup/>") });
         HTMLParsing.replaceCSSWithFont(node);
-        HTMLParsing.cleanUpTags(node);
+        HTMLParsing.cleanUpHTML(node);
     }
 
-    static cleanUpTags(node:Node):void {
+    static cleanUpHTML(node :Node):void {
+        HTMLParsing.removeDefaultCSS(node);
         HTMLParsing.cleanUpTag(node, ["span"]);
         HTMLParsing.cleanUpTag(node, ["div"], undefined, true);
-        HTMLParsing.cleanUpTag(node, ["font"], ["style", "face", "size", "color"], false);
+        HTMLParsing.cleanUpTag(node, ["font"], ["style", "face", "size", "color"]);
     }
+
 
     static replaceCSSWithFont(node: Node): void {
         let element: HTMLElement = HTMLParsing.castNodeToHTMLElement(node);
@@ -258,9 +265,6 @@ export class HTMLParsing {
             newElement.style.backgroundColor = styleBackColor;
         }
         $(element).contents().wrapAll(newElement);
-        HTMLParsing.cleanUpTag(node, ["span"]);
-        HTMLParsing.cleanUpTag(node, ["div"], undefined, true);
-
     }
     static replaceCSSWithAttribute(node: Node, property: string, attribute: string, transform: {}): void {
         let element: HTMLElement = HTMLParsing.castNodeToHTMLElement(node);
