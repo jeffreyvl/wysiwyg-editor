@@ -39,7 +39,6 @@ export class EditArea {
         let fn: () => boolean = () => { return this.undoManager.onChange(this.undoManager); };
         $(this.editor).keyup(debounce(fn, 500, { "maxWait": 2000 })).mouseup(fn).blur(fn).on("paste", fn).on("cut", fn);
         $(this.editor).keydown(e => this.handleKeyDown(this, e));
-        $(this.editor).keyup(e => this.handleKeyUp(this, e));
         $(this.editor).on("paste", e => this.paste(this, e));
     }
 
@@ -61,13 +60,10 @@ export class EditArea {
         }
         return true;
     }
-    handleKeyUp(that: EditArea, e: JQuery.Event<HTMLElement, null>): boolean {
+    handleKeyDown(that: EditArea, e: JQuery.Event<HTMLElement, null>): boolean {
         if (e.keyCode === 32 || e.keyCode === 13) {
             that.undoManager.onChange(that.undoManager);
         }
-        return true;
-    }
-    handleKeyDown(that: EditArea, e: JQuery.Event<HTMLElement, null>): boolean {
         if (e.keyCode === 89 && e.ctrlKey) {
             e.preventDefault();
             that.formatDoc("redo");
@@ -91,6 +87,12 @@ export class EditArea {
     updateEditor(): void {
         this.setHTML($(this.textArea).val().toString());
         this.ReplaceCSS();
+    }
+
+    beforeSubmit():void {
+        if (this.mode === ActiveMode.Design || this.mode === ActiveMode.Preview) {
+            this.updateTextArea();
+        }
     }
 
     updateTextArea(): void {

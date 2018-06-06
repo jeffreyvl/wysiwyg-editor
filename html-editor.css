@@ -31,7 +31,7 @@ div.group:after {
 div.html-editor div.toolbar ul li div.colorpicker {
     position: absolute;
     top: 20px;
-    width:220px;
+    width:140px;
     z-index: 5;
     border: 1px solid #B0B0B0;
     font-family: Arial, Helvetica, sans-serif;
@@ -40,14 +40,14 @@ div.html-editor div.toolbar ul li div.colorpicker {
 }
 
 div.html-editor div.toolbar ul li div.colorpicker table.colortable {
-    background-color: #000000;
+    background-color: #A0A0A0;
     border: 0;
 }
 
 div.html-editor div.toolbar ul li div.colorpicker table.colortable body tr td {
     cursor: pointer;
-    height: 10px;
-    width: 10px; 
+    height: 20px;
+    width: 20px; 
 }
 
 div.html-editor div.toolbar ul li div.colorpicker table.colortable body tr td div {
