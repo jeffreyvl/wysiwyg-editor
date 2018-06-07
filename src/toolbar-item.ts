@@ -27,6 +27,7 @@ export class ColorPickerItem extends ToolbarItem implements ItemWithPopup {
     color: string;
     command: string;
     colorPicker: HTMLElement;
+    isOpen:boolean=false;
 
     constructor(name: string, text: string, toolbar: Toolbar, defaultColor: string, command?: string) {
         super(toolbar);
@@ -47,7 +48,7 @@ export class ColorPickerItem extends ToolbarItem implements ItemWithPopup {
         $(this.selectButton).click((e) => { e.preventDefault(); this.open(); return false; });
         $(this.applyButton).click((e) => { e.preventDefault(); this.execute(); return false; });
         window.addEventListener("click", e => {
-            if (!this.colorPicker.contains(<Node>e.target)) {
+            if (this.isOpen &&!this.colorPicker.contains(<Node>e.target)) {
               this.close();
             }
           });
@@ -65,6 +66,7 @@ export class ColorPickerItem extends ToolbarItem implements ItemWithPopup {
     }
 
     open(): void {
+        this.isOpen = true;
         this.toolbar.registerPopup(this);
         this.toolbar.editArea.saveSelection();
         this.toolbar.editArea.editor.contentEditable = "false";
@@ -73,6 +75,7 @@ export class ColorPickerItem extends ToolbarItem implements ItemWithPopup {
     }
 
     close(): void {
+        this.isOpen=false;
         $(this.colorPicker).hide();
         this.toolbar.unRegisterPopup(this);
         this.toolbar.editArea.editor.contentEditable = "true";
