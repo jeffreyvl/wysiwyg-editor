@@ -8,7 +8,6 @@ import "rangy/lib/rangy-selectionsaverestore";
 import { formatHtmlString } from "./helper";
 import { HTMLParsing } from "./html-parsing";
 import { UndoManager } from "./undo-manager";
-import wordFilter from "tinymce-word-paste-filter";
 import "./rangyinputs";
 
 export class EditArea {
@@ -173,14 +172,13 @@ export class EditArea {
     }
 
     saveSelection(): void {
-        if (this.savedSelection) {
-            rangy.removeMarkers(this.savedSelection);
-        }
+        this.removeSavedSelection();
         this.savedSelection = rangy.saveSelection();
         this.savedSelectionActiveElement = document.activeElement;
     }
 
     restoreSelection(): void {
+        this.focus();
         if (this.savedSelection) {
             rangy.restoreSelection(this.savedSelection, true);
             this.savedSelection = null;
@@ -189,6 +187,12 @@ export class EditArea {
                     (<HTMLElement>this.savedSelectionActiveElement).focus();
                 }
             }, 1);
+        }
+    }
+
+    removeSavedSelection():void {
+        if (this.savedSelection) {
+            rangy.removeMarkers(this.savedSelection);
         }
     }
 
@@ -255,7 +259,6 @@ export class EditArea {
     }
 
     formatDoc(cmd: string, showUI?: boolean, value?: any): void {
-        this.focus();
         this.restoreSelection();
         switch (cmd) {
             case ("p"):
@@ -306,7 +309,7 @@ export class EditArea {
                 break;
             case ("pasteword"):
                 this.formatDoc("paste");
-                this.setHTML(wordFilter(this.getHTML()));
+                this.setHTML(HTMLParsing.clean(this.getHTML()));
                 break;
             case ("resetforecolor"):
                 this.formatDoc("forecolor", undefined, "");
@@ -452,11 +455,11 @@ export class EditArea {
 
             let children: Node[] = this.getNodesInRange(range, NodesInRange.ChildrenAll, [1, 3]);
 
-            if (this.getNodesInRange(range, NodesInRange.Intersecting, [1]).length === 0) {
+            if (this.getNodesInRange(range, NodesInRange.IntersectingWithText, [1]).length === 0) {
                 if (children.length === 1) {
                     wrapper = this.surroundContainerWithElement(children[0], newElement);
                 } else {
-                    range.surroundContents(newElement);
+                    this.surroundContents(newElement,range)
                     wrapper = newElement;
                 }
             } else {

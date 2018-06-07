@@ -1,5 +1,61 @@
+declare function require(name: string);
+declare function require(name: string);
+var sanitizeHtml = require('sanitize-html');
 export class HTMLParsing {
 
+    static allowedTags: string[] = [
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "p",
+        "a",
+        "ul",
+        "ol",
+        "li",
+        "b",
+        "i",
+        "strong",
+        "em",
+        "strike",
+        "code",
+        "hr",
+        "br",
+        "div",
+        "span",
+        "font",
+        "sub",
+        "sup",
+        "table",
+        "thead",
+        "caption",
+        "tbody",
+        "tr",
+        "th",
+        "td",
+        "pre"
+      ];
+    
+      static allowedAttributes: any = {
+        a: ["href", "target", , "shape"],
+        font: ["color", "face", "size"],
+        "*": ["style"]
+      };
+    
+      static allowedStyles: any = {
+        "*": {
+          "direction": ["ltr", "rtl"],
+          marginLeft: "*",
+          marginRight: "*",
+          textAlign: ["left", "center", "right", "justify"],
+          backgroundColor: " *"
+        }};
+    
+    static clean(html:string):string {
+        return sanitizeHtml(html, {allowedTags: HTMLParsing.allowedTags, allowedAttributes: HTMLParsing.allowedAttributes});
+    }
     static castNodeToHTMLElement(node: Node): HTMLElement {
         if (node !== undefined && node.nodeType === 1) {
             return <HTMLElement>node;
