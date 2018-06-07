@@ -56,7 +56,7 @@ export class ColorPickerItem extends ToolbarItem implements ItemWithPopup {
     setColor(color: string): void {
         this.color = color;
         this.showColor();
-        this.close();
+        this.close(false);
     }
     showColor(): void {
         $(this.applyButton).css("background-color", this.color);
@@ -74,13 +74,16 @@ export class ColorPickerItem extends ToolbarItem implements ItemWithPopup {
 
     }
 
-    close(): void {
+    close(force:boolean = true): void {
         this.isOpen=false;
         $(this.colorPicker).hide();
         this.toolbar.unRegisterPopup(this);
         this.toolbar.editArea.editor.contentEditable = "true";
-        this.toolbar.editArea.restoreSelection();
+        if (force) {
+        this.toolbar.editArea.removeSavedSelection();
+        }
     }
+    
 
     createColorPicker(): void {
 

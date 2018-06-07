@@ -1,7 +1,7 @@
 // tslint:disable-next-line:typedef
 declare function require(name:string);
 // tslint:disable-next-line:typedef
-var Manager = require("undo-manager");
+import Manager = require("undo-manager");
 import { EditArea } from "./edit-area";
 
 export class UndoManager {
