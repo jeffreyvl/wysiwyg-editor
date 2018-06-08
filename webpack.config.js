@@ -1,7 +1,8 @@
 const path = require('path');
+
 module.exports = {
 	entry: {
-		html_editor: './src/html-editor.ts'
+		html_editor: './src/index.ts'
 	},
 	plugins: [
 	],
@@ -12,7 +13,7 @@ module.exports = {
 	},
 	mode: "development",
 	optimization: {
-		minimize: false
+		minimize: true
 	},
 	devtool: 'inline-source-map',
 	module: {
@@ -26,6 +27,5 @@ module.exports = {
 	},
 	resolve: {
 		extensions: ['.tsx', '.ts', '.js']
-	},
-
+	}
 };
