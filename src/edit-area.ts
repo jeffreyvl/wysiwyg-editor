@@ -1,14 +1,12 @@
-// tslint:disable-next-line:typedef
-declare function require(name: string);
-// tslint:disable-next-line:typedef
-var debounce = require("lodash.debounce");
+
+import debounce = require("lodash.debounce");
 import { ActiveMode, Direction, CaretPosition, NodesInRange, Align } from "./util";
 import rangy from "rangy/lib/rangy-core.js";
 import "rangy/lib/rangy-selectionsaverestore";
 import { formatHtmlString } from "./helper";
 import { HTMLParsing } from "./html-parsing";
 import { UndoManager } from "./undo-manager";
-import "./rangyinputs";
+import "rangyinputs";
 
 export class EditArea {
 
@@ -172,6 +170,7 @@ export class EditArea {
     }
 
     saveSelection(): void {
+        this.focus();
         this.removeSavedSelection();
         this.savedSelection = rangy.saveSelection();
         this.savedSelectionActiveElement = document.activeElement;
@@ -336,7 +335,6 @@ export class EditArea {
     }
 
     createLink(url: string, target: string): any {
-        this.focus();
         this.restoreSelection();
         let range: RangyRange = this.getFirstRange();
         if (range === undefined) {
@@ -558,7 +556,7 @@ export class EditArea {
             this.insertHTMLAtRange(value);
         }
         if (mode === ActiveMode.Html) {
-            (<any>$(this.textArea).focus()).replaceSelectedText(value, "collapseToEnd");
+            $(this.textArea).focus().replaceSelectedText(value, "collapseToEnd");
         }
     }
     insertHTMLAtRange(value: string, caretPosition: CaretPosition = CaretPosition.After): void {
@@ -811,16 +809,5 @@ export class EditArea {
     }
 
 }
-
-
-
-        // removeCSSFromRange(range: RangyRange, property: string): void {
-    //     let nodes: Node[] = range.getNodes([1], (node: Node) => { return range.containsNodeContents(node); });
-    //     nodes.forEach((node) => this.removeCSSElement(<Element>node, property));
-    // }
-    // removeCSSElement(element: Element, property: string): void {
-    //     $(element).css(property, "");
-    // }
-
 
 

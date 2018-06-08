@@ -1,6 +1,4 @@
-declare function require(name: string);
-declare function require(name: string);
-var sanitizeHtml = require('sanitize-html');
+import sanitizeHtml = require('sanitize-html');
 export class HTMLParsing {
 
     static allowedTags: string[] = [
@@ -47,10 +45,10 @@ export class HTMLParsing {
       static allowedStyles: any = {
         "*": {
           "direction": ["ltr", "rtl"],
-          marginLeft: "*",
-          marginRight: "*",
-          textAlign: ["left", "center", "right", "justify"],
-          backgroundColor: " *"
+          "margin-left": "*",
+          "margin-right": "*",
+          "text-align": ["left", "center", "right", "justify"],
+          "background-color": " *"
         }};
     
     static clean(html:string):string {

@@ -28,7 +28,7 @@ export class Toolbar {
         this.bottomButtonContainer = $("<ul/>")[0];
         $(bottomToolbar).append(this.bottomButtonContainer);
         this.options = options;
-        this.simpleOptions = ["undo"];
+        this.simpleOptions = ["undo", "redo","|", "bold", "italic", "underline", "strikethrough", "subscript", "superscript", "|"];
         this.fullOptions = ["undo", "redo", "|",
             "bold", "italic", "underline", "strikethrough", "subscript", "superscript", "|",
             "formatltr", "formatrtl", "|",
@@ -94,7 +94,7 @@ export class Toolbar {
         if (this.mode === mode || mode === undefined) {
             return false;
         }
-        if (this.popup !== undefined && (<any>this.popup).close && mode!== ActiveMode.Design) {
+        if (this.popup !== undefined && (<any>this.popup).close && mode !== ActiveMode.Design) {
             (<any>this.popup).close();
             this.popup = undefined;
         }
