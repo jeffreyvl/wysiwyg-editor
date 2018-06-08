@@ -18,7 +18,8 @@ export class Toolbar {
     fullOptions: string[];
     bottomOptions: string[];
     popup: ToolbarItem = undefined;
-    constructor(toolbar: HTMLElement, bottomToolbar: HTMLElement, editArea: EditArea, options: ToolbarOptions) {
+    constructor(toolbar: HTMLElement, bottomToolbar: HTMLElement, editArea: EditArea, options: ToolbarOptions= ToolbarOptions.Full,
+        showBottomToolbar=true, mode:ActiveMode= ActiveMode.Design) {
         if (toolbar.nodeName !== "DIV" || bottomToolbar.nodeName !== "DIV") {
             throw Error("Invalid HTMLElement");
         }
@@ -28,7 +29,7 @@ export class Toolbar {
         this.bottomButtonContainer = $("<ul/>")[0];
         $(bottomToolbar).append(this.bottomButtonContainer);
         this.options = options;
-        this.simpleOptions = ["undo", "redo","|", "bold", "italic", "underline", "strikethrough", "subscript", "superscript", "|"];
+        this.simpleOptions = ["undo", "redo", "|", "bold", "italic", "underline"];
         this.fullOptions = ["undo", "redo", "|",
             "bold", "italic", "underline", "strikethrough", "subscript", "superscript", "|",
             "formatltr", "formatrtl", "|",
@@ -45,10 +46,19 @@ export class Toolbar {
         this.bottomOptions = ["design", "html", "preview"];
         this.initItems();
         this.renderItems();
-        this.setMode(ActiveMode.Design);
+        this.setMode(mode);
+        this.bottomToolbarVisible(showBottomToolbar);
         let listener: () => boolean = () => { this.checkState(); return true; };
         $(this.editArea.editor).mouseup(listener).mouseup(listener).keydown(listener).keyup(listener)
             .focus(listener).blur(() => this.resetToolbar());
+    }
+
+    bottomToolbarVisible(visible: boolean): void {
+        if (visible) {
+            $(this.bottomButtonContainer).show();
+            return;
+        }
+        $(this.bottomButtonContainer).hide();
     }
 
     registerPopup(item: ToolbarItem): void {

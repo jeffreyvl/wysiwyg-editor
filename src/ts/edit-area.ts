@@ -34,7 +34,7 @@ export class EditArea {
 
     addHandlers(): void {
         let fn: () => boolean = () => { return this.undoManager.onChange(this.undoManager); };
-        $(this.editor).keyup(debounce(fn, 500, { "maxWait": 2000 })).mouseup(fn).blur(fn).on("paste", fn).on("cut", fn);
+        $(this.editor).keyup(debounce(fn, 500, { "maxWait": 1500 })).mouseup(fn).blur(fn).on("paste", fn).on("cut", fn);
         $(this.editor).keydown(e => this.handleKeyDown(this, e));
         $(this.editor).on("paste", e => this.paste(this, e));
     }
@@ -86,8 +86,8 @@ export class EditArea {
         this.ReplaceCSS();
     }
 
-    beforeSubmit():void {
-        if (this.mode === ActiveMode.Design || this.mode === ActiveMode.Preview) {
+    beforeSubmit(): void {
+        if (this.mode !== ActiveMode.Html) {
             this.updateTextArea();
         }
     }
@@ -189,7 +189,7 @@ export class EditArea {
         }
     }
 
-    removeSavedSelection():void {
+    removeSavedSelection(): void {
         if (this.savedSelection) {
             rangy.removeMarkers(this.savedSelection);
         }
@@ -276,7 +276,7 @@ export class EditArea {
                 this.applyPropertyToRange("text-align", "justify", "p");
                 break;
             case ("justifyreset"):
-                this.removePropertyFromRange("text-align",NodesInRange.All);
+                this.removePropertyFromRange("text-align", NodesInRange.All);
                 break;
             case ("undo"):
                 this.undoManager.undo();
@@ -321,7 +321,7 @@ export class EditArea {
                 document.execCommand("forecolor", showUI, value);
                 break;
             case ("backcolor"):
-                this.removePropertyFromRange("background-color",NodesInRange.InsideWithText);
+                this.removePropertyFromRange("background-color", NodesInRange.InsideWithText);
                 document.execCommand("backcolor", showUI, value);
                 break;
             default:
@@ -457,7 +457,7 @@ export class EditArea {
                 if (children.length === 1) {
                     wrapper = this.surroundContainerWithElement(children[0], newElement);
                 } else {
-                    this.surroundContents(newElement,range)
+                    this.surroundContents(newElement, range)
                     wrapper = newElement;
                 }
             } else {
@@ -628,7 +628,7 @@ export class EditArea {
         }
     }
 
-    removePropertyFromRange(property: string, nodesInRange:NodesInRange): void {
+    removePropertyFromRange(property: string, nodesInRange: NodesInRange): void {
         let range: RangyRange = this.getFirstRange();
         if (range === undefined) {
             return;
@@ -642,7 +642,7 @@ export class EditArea {
         $(this.getNodesInRange(range, nodesInRange)).each((index, element) => HTMLParsing.removeProperty(element, property));
     }
 
-    removeAttributeFromRange(attribute: string, nodesInRange:NodesInRange): void {
+    removeAttributeFromRange(attribute: string, nodesInRange: NodesInRange): void {
         let range: RangyRange = this.getFirstRange();
         if (range === undefined) {
             return;
