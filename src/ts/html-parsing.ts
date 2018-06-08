@@ -1,58 +1,25 @@
 import sanitizeHtml = require('sanitize-html');
 export class HTMLParsing {
 
-    static allowedTags: string[] = [
-        "h1",
-        "h2",
-        "h3",
-        "h4",
-        "h5",
-        "h6",
-        "p",
-        "a",
-        "ul",
-        "ol",
-        "li",
-        "b",
-        "i",
-        "strong",
-        "em",
-        "strike",
-        "code",
-        "hr",
-        "br",
-        "div",
-        "span",
-        "font",
-        "sub",
-        "sup",
-        "table",
-        "thead",
-        "caption",
-        "tbody",
-        "tr",
-        "th",
-        "td",
-        "pre"
-      ];
+    static allowedTags: string[] = ["div","span", "strong", "em", "u", "strike", "sub", "sup","font","p"];
     
       static allowedAttributes: any = {
-        a: ["href", "target", , "shape"],
-        font: ["color", "face", "size"],
-        "*": ["style"]
+        "*" : ["href", "target", , "shape","color", "face", "size", "style"]
       };
     
       static allowedStyles: any = {
         "*": {
-          "direction": ["ltr", "rtl"],
-          "margin-left": "*",
-          "margin-right": "*",
-          "text-align": ["left", "center", "right", "justify"],
-          "background-color": " *"
+          "direction": [/^.*$/],
+          "margin-left": [/^.*$/],
+          "margin-right": [/^.*$/],
+          "text-align": [/^.*$/],
+          "background-color": [/^.*$/]
         }};
     
     static clean(html:string):string {
-        return sanitizeHtml(html, {allowedTags: HTMLParsing.allowedTags, allowedAttributes: HTMLParsing.allowedAttributes});
+        return sanitizeHtml(html, { allowedTags: HTMLParsing.allowedTags, 
+                                    allowedAttributes: HTMLParsing.allowedAttributes,
+                                    allowedStyles: HTMLParsing.allowedStyles});
     }
     static castNodeToHTMLElement(node: Node): HTMLElement {
         if (node !== undefined && node.nodeType === 1) {
