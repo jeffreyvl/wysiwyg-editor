@@ -12,36 +12,28 @@ export function createEditor(id: string, options: string = "full", mode: string 
     
     let textArea: HTMLElement = document.getElementById(id);
 
-    let insertListBoxWidth = 200;
-
     let height: number = $(textArea).height();
-    let width: number = $(textArea).width() - (insertListValues.length > 0 ? insertListBoxWidth : 0);
-
     height = Math.max(height, 60);
-    width = Math.max(width, 150);
+    $(textArea).height(height);
 
-    $(textArea).width(width);
+    let container: HTMLElement = $("<div/>").addClass("html-editor")[0];
+    let main: HTMLElement = $("<div/>").addClass("main")[0];
+    let toptoolbar: HTMLElement = $("<div/>").addClass("toolbar")[0]; 
+    let editor: HTMLElement = $("<div/>").addClass("editable").height(height)[0];  
+    let bottomToolbar: HTMLElement = $("<div/>").addClass("toolbar")[0];
+    let insertListBox: HTMLElement = $('<div/>').addClass("insertlist")[0];    
     
-    let editorMain: HTMLElement = $("<div>").addClass("group").addClass("html-editor-main")[0];
-    
-    let insertListBox: HTMLElement = $('<div/>').addClass("insertlist").height(height).width(insertListBoxWidth)[0];
-    let editor: HTMLElement = $("<div/>").addClass("editable").height(height).width(width)[0];
-    let toptoolbar: HTMLElement = $("<div/>").addClass("toolbar").width(width)[0];
-    let bottomToolbar: HTMLElement = $("<div/>").addClass("toolbar").width(width)[0];
-
-
-    $("<div/>").addClass("html-editor-container").insertAfter(textArea)
-        .append(toptoolbar).append(editorMain).append(bottomToolbar);
-
-    $(editorMain).append(editor).append(textArea);
-
+    $(container).insertAfter(textArea).append(main);
+    $(main).append(toptoolbar,editor,textArea,bottomToolbar);
     if (insertListValues.length > 0) {
-        $(editorMain).append(insertListBox);
+        $(container).append(insertListBox);
+        $(main).addClass("with-insertlist");
     }
 
     let htmlEditor: HtmlEditor = new HtmlEditor(textArea, editor, toptoolbar, bottomToolbar, showBottomToolbar,
         toolbarOptions, activeMode, insertListBox, insertListValues);
 
+    $(insertListBox.firstChild).css("max-height",($(main).height()));
     activeEditors.push(htmlEditor);
 }
 

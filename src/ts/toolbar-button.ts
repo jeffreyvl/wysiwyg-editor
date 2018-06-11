@@ -118,7 +118,8 @@ export class CreateLink extends ToolbarButtonBase implements ItemWithPopup {
         this.toolbar.editArea.saveSelection();
         this.toolbar.editArea.editor.contentEditable = "false";
         $(this.popup).show();
-        this.textBox.focus();
+        let length:number = $(this.textBox).val().toString().length;
+        $(this.textBox).setSelection(length);
     }
 
     createForm(): void {
