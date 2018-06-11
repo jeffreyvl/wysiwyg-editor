@@ -18,7 +18,7 @@ export class EditArea {
     editor: HTMLDivElement;
     undoManager: UndoManager;
     pasteAsPlainText: boolean = false;
-    readonly markUpNodeNames: string[] = ["strong", "em", "sub", "sup", "u", "strike"];
+    readonly markUpNodeNames: string[] = ["strong", "em", "sub", "sup", "u", "strike", "font", "span"];
     constructor(textArea: HTMLElement, editor: HTMLElement) {
         if (textArea.nodeName !== "TEXTAREA" || editor.nodeName !== "DIV") {
             throw Error("Invalid HTMLElements");
@@ -369,7 +369,7 @@ export class EditArea {
         this.restoreSelection();
     }
 
-    groupChildNodesFromRange(range: RangyRange, keepTextOnly: boolean = false, elementsToGroup: string[] = this.markUpNodeNames,
+    groupChildNodesFromRange(range: RangyRange, elementsToGroup: string[] = this.markUpNodeNames,
         elementsToBreakAfter: string[] = ["br"], elementsToRemove: string[] = ["br"]): Node[][] {
         let result: Node[][] = [];
         let children: Node[];
@@ -391,16 +391,12 @@ export class EditArea {
         let parent: Node = this.getParentWithTypeOfRange([], range);
         parent = parent === undefined ? this.editor : parent;
         let grouped: Node[][];
-        grouped = HTMLParsing.groupChildNodes(parent, elementsToGroup, elementsToBreakAfter, elementsToRemove, keepTextOnly);
+        grouped = HTMLParsing.groupChildNodes(parent, elementsToGroup, elementsToBreakAfter, elementsToRemove);
         grouped.forEach(group => {
             let flag: boolean = false;
             group.forEach((value) => {
-                let temp: any = value;
-                while (!flag && temp !== undefined && temp !== this.editor) {
-                    if (children.indexOf(temp) !== -1) {
-                        flag = true;
-                    }
-                    temp = temp.parentNode;
+                if (children.indexOf(value) !== -1) {
+                    flag = true;
                 }
             });
             if (flag) {
@@ -608,8 +604,12 @@ export class EditArea {
             }
         } else {
             let groups: Node[][];
-            groups = this.groupChildNodesFromRange(range, true);
-            groups.forEach(group => $(list).append($("<li/>").append($(group))));
+            groups = this.groupChildNodesFromRange(range);
+            groups.forEach(group => {
+                $(list).append($("<li/>").append($(group)))
+
+            });
+            HTMLParsing.removeTagKeepAttributesRecursive(list, ["div"]);
             this.insertNodeAtRange(list);
         }
         $(list).append(li);

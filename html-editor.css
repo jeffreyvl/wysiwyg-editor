@@ -1,37 +1,44 @@
-div.html-editor-container  {
+div.html-editor  {
     border: inherit;
     background-color: inherit;
+    content: "";
+    display: table;
+    clear: both;
+    width:100%;
 }
 
-div.html-editor-container div.group:after {
+div.html-editor div.group:after {
     content: "";
     display: table;
     clear: both;
 }
-
-div.html-editor-main > div, div.html-editor-main textarea {
+div.html-editor div.main {
     float:left;
+    width:100%;
 }
 
-
-div.html-editor-main div.editable, div.html-editor-main textarea { 
-    border: none; 
-    overflow: auto;
-    padding: 2px;
-    margin: 0;
-    font-family: verdana,sans-serif;
-    font-size: 10pt;
-    border-width: 0;
-    background-color: #FFFFFF;
+div.html-editor div.with-insertlist {
+    width:75%;
 }
 
-div.html-editor-main div.insertlist {
+div.html-editor div.insertlist {
     float:left;
     margin-left: 10px;
+    width:20%;
     border: 1px solid #A0A0A0;
 }
 
-div.html-editor-main div.insertlist .insertlistselect {
+
+div.html-editor div.editable, div.html-editor textarea { 
+    padding: 2px;
+    font-family: verdana,sans-serif;
+    font-size: 10pt;
+    background-color: #FFFFFF;
+    width:99%;
+    overflow: auto;
+}
+
+div.html-editor div.insertlist .insertlistselect {
     height: 100%;
     width:100%;
     overflow:auto;
@@ -41,21 +48,21 @@ div.html-editor-main div.insertlist .insertlistselect {
 }
 
 
-div.html-editor-container div.toolbar {
+div.html-editor div.toolbar {
     font: inherit;
-    display: inline-block;
     background-color: transparent;
     margin: 2px 0 0 0;
+    display: block;
 }
 
-div.html-editor-container div.toolbar ul {
+div.html-editor div.toolbar ul {
     margin: 1px;
     margin-left: 4px;
     padding: 1px;
     float: left;
 }
 
-div.html-editor-container div.toolbar ul li {
+div.html-editor div.toolbar ul li {
     list-style: none;
     float: left;
     padding: 0;
@@ -67,35 +74,35 @@ div.html-editor-container div.toolbar ul li {
 }
 
 
-div.html-editor-container div.toolbar div.colorpicker {
+div.html-editor div.toolbar div.colorpicker {
     position: absolute;
     top: 20px;
-    width:140px;
     z-index: 5;
     border: 1px solid #B0B0B0;
+    background-color: #B0B0B0;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 11px;
     color: #404040;
+    padding:0;
 }
 
-div.html-editor-container div.toolbar div.colorpicker table.colortable {
-    background-color: #A0A0A0;
+div.html-editor div.toolbar div.colorpicker table.colortable {
+    background-color: #0000;
     border: 0;
+    width:220px;    
+    padding:0;
+    margin:0;
 }
 
-div.html-editor-container div.toolbar div.colorpicker table.colortable body tr td {
+div.html-editor div.toolbar div.colorpicker table.colortable body tr td {
     cursor: pointer;
-    height: 20px;
-    width: 20px; 
+    height: 10px;
+    width: 10px; 
+    border:0;
 }
 
-div.html-editor-container div.toolbar div.colorpicker table.colortable body tr td div {
-    font-size: 1px;
-    height: 100%;
-    width: 100%;
-}
 
-div.html-editor-container div.toolbar div.popup {
+div.html-editor div.toolbar div.popup {
     position: absolute;
     top: 20px;
     width:260px;
@@ -106,31 +113,31 @@ div.html-editor-container div.toolbar div.popup {
     font-size: 11px;
     color: #404040;
 }
-div.html-editor-container div.toolbar div.popup div {
+div.html-editor div.toolbar div.popup div {
     margin:5px 5px 0px 5px;
 }
-div.html-editor-container div.toolbar div.popup div.inputdiv label {
+div.html-editor div.toolbar div.popup div.inputdiv label {
     text-align: left;
     width:60px;
     display: block;
     float:left;
 }
 
-div.html-editor-container div.toolbar div.popup div.inputdiv select.popup {
+div.html-editor div.toolbar div.popup div.inputdiv select.popup {
     width:120px;
     float:left;
 }
 
-div.html-editor-container div.toolbar div.popup div.inputdiv input[type=text].popup {
+div.html-editor div.toolbar div.popup div.inputdiv input[type=text].popup {
     width: 180px;
     float:left;
 }
 
-div.html-editor-container div.toolbar div.popup div.buttondiv {
+div.html-editor div.toolbar div.popup div.buttondiv {
     float: right;
 }
 
-div.html-editor-container div.toolbar div.popup div.buttondiv button.popup {
+div.html-editor div.toolbar div.popup div.buttondiv button.popup {
     background-color: #C1C1C1;
     color: #404040;
     margin:2px 5px 0px 2px;
@@ -138,9 +145,9 @@ div.html-editor-container div.toolbar div.popup div.buttondiv button.popup {
     float:right;
 }
 
-div.html-editor-container div.toolbar ul li select { font-weight: normal; }
+div.html-editor div.toolbar ul li select { font-weight: normal; }
 
-div.html-editor-container div.toolbar button {
+div.html-editor div.toolbar button {
     width: 21px;
     height: 100%;
     border: 0;
@@ -151,177 +158,177 @@ div.html-editor-container div.toolbar button {
     background-repeat: no-repeat;
 }
 
-div.html-editor-container div.toolbar button.highlighted {
+div.html-editor div.toolbar button.highlighted {
     border: solid 1px #aaa;
     padding: 0;
 }
 
 
-div.html-editor-container div.toolbar ul li.seperator {
+div.html-editor div.toolbar ul li.seperator {
     width: 13px;
     background: url(buttons/images/separator.gif);
 }
 
-div.html-editor-container div.toolbar button.undo { background: url(buttons/images/undo-inactive.gif) }
+div.html-editor div.toolbar button.undo { background: url(buttons/images/undo-inactive.gif) }
 
-div.html-editor-container div.toolbar button.undo:active { background: url(buttons/images/undo-active.gif) }
+div.html-editor div.toolbar button.undo:active { background: url(buttons/images/undo-active.gif) }
 
-div.html-editor-container div.toolbar button.redo { background: url(buttons/images/redo-inactive.gif) }
+div.html-editor div.toolbar button.redo { background: url(buttons/images/redo-inactive.gif) }
 
-div.html-editor-container div.toolbar button.redo:active { background: url(buttons/images/redo-active.gif) }
+div.html-editor div.toolbar button.redo:active { background: url(buttons/images/redo-active.gif) }
 
-div.html-editor-container div.toolbar button.bold { background: url(buttons/images/formatbold-inactive.gif) }
+div.html-editor div.toolbar button.bold { background: url(buttons/images/formatbold-inactive.gif) }
 
-div.html-editor-container div.toolbar button.bold.active { background: url(buttons/images/formatbold-active.gif) }
+div.html-editor div.toolbar button.bold.active { background: url(buttons/images/formatbold-active.gif) }
 
-div.html-editor-container div.toolbar button.italic { background: url(buttons/images/formatitalic-inactive.gif) }
+div.html-editor div.toolbar button.italic { background: url(buttons/images/formatitalic-inactive.gif) }
 
-div.html-editor-container div.toolbar button.italic.active { background: url(buttons/images/formatitalic-active.gif) }
+div.html-editor div.toolbar button.italic.active { background: url(buttons/images/formatitalic-active.gif) }
 
-div.html-editor-container div.toolbar button.underline { background: url(buttons/images/formatunderline-inactive.gif) }
+div.html-editor div.toolbar button.underline { background: url(buttons/images/formatunderline-inactive.gif) }
 
-div.html-editor-container div.toolbar button.underline.active { background: url(buttons/images/formatunderline-active.gif) }
+div.html-editor div.toolbar button.underline.active { background: url(buttons/images/formatunderline-active.gif) }
 
-div.html-editor-container div.toolbar button.strikethrough { background: url(buttons/images/formatstrike-inactive.gif) }
+div.html-editor div.toolbar button.strikethrough { background: url(buttons/images/formatstrike-inactive.gif) }
 
-div.html-editor-container div.toolbar button.strikethrough.active { background: url(buttons/images/formatstrike-active.gif) }
+div.html-editor div.toolbar button.strikethrough.active { background: url(buttons/images/formatstrike-active.gif) }
 
-div.html-editor-container div.toolbar button.subscript { background: url(buttons/images/formatsub-inactive.gif); }
+div.html-editor div.toolbar button.subscript { background: url(buttons/images/formatsub-inactive.gif); }
 
-div.html-editor-container div.toolbar button.subscript.active { background: url(buttons/images/formatsub-active.gif) }
+div.html-editor div.toolbar button.subscript.active { background: url(buttons/images/formatsub-active.gif) }
 
-div.html-editor-container div.toolbar button.superscript { background: url(buttons/images/formatsup-inactive.gif) }
+div.html-editor div.toolbar button.superscript { background: url(buttons/images/formatsup-inactive.gif) }
 
-div.html-editor-container div.toolbar button.superscript.active { background: url(buttons/images/formatsup-active.gif) }
+div.html-editor div.toolbar button.superscript.active { background: url(buttons/images/formatsup-active.gif) }
 
-div.html-editor-container div.toolbar button.formatltr { background: url(buttons/images/formatltr-inactive.gif) }
+div.html-editor div.toolbar button.formatltr { background: url(buttons/images/formatltr-inactive.gif) }
 
-div.html-editor-container div.toolbar button.formatltr.active { background: url(buttons/images/formatltr-active.gif) }
+div.html-editor div.toolbar button.formatltr.active { background: url(buttons/images/formatltr-active.gif) }
 
-div.html-editor-container div.toolbar button.formatrtl { background: url(buttons/images/formatrtl-inactive.gif) }
+div.html-editor div.toolbar button.formatrtl { background: url(buttons/images/formatrtl-inactive.gif) }
 
-div.html-editor-container div.toolbar button.formatrtl.active { background: url(buttons/images/formatrtl-active.gif) }
+div.html-editor div.toolbar button.formatrtl.active { background: url(buttons/images/formatrtl-active.gif) }
 
-div.html-editor-container div.toolbar button.forecolor {
+div.html-editor div.toolbar button.forecolor {
     background: url(buttons/images/forecolor-inactive.gif);
     background-repeat: no-repeat;
 }
 
-div.html-editor-container div.toolbar button.forecolor:active { background: url(buttons/images/forecolor-active.gif); }
+div.html-editor div.toolbar button.forecolor:active { background: url(buttons/images/forecolor-active.gif); }
 
-div.html-editor-container div.toolbar button.selector {
+div.html-editor div.toolbar button.selector {
     background: url(buttons/images/selector-inactive.gif);
     background-repeat: no-repeat;
     width: 10px;
 }
-div.html-editor-container div.toolbar button.selector:active {
+div.html-editor div.toolbar button.selector:active {
     background: url(buttons/images/selector-active.gif);
 }
 
 
-div.html-editor-container div.toolbar button.resetforecolor { background: url(buttons/images/colorfgclear-inactive.gif) }
+div.html-editor div.toolbar button.resetforecolor { background: url(buttons/images/colorfgclear-inactive.gif) }
 
-div.html-editor-container div.toolbar button.resetforecolor:active { background: url(buttons/images/colorfgclear-active.gif) }
+div.html-editor div.toolbar button.resetforecolor:active { background: url(buttons/images/colorfgclear-active.gif) }
 
-div.html-editor-container div.toolbar button.backcolor { 
+div.html-editor div.toolbar button.backcolor { 
     background: url(buttons/images/backcolor-inactive.gif);
     background-repeat: no-repeat; 
 }
 
-div.html-editor-container div.toolbar button.backcolor:active { background: url(buttons/images/backcolor-active.gif); }
+div.html-editor div.toolbar button.backcolor:active { background: url(buttons/images/backcolor-active.gif); }
 
-div.html-editor-container div.toolbar button.resetbackcolor { background: url(buttons/images/colorbgclear-inactive.gif) }
+div.html-editor div.toolbar button.resetbackcolor { background: url(buttons/images/colorbgclear-inactive.gif) }
 
-div.html-editor-container div.toolbar button.resetbackcolor:active { background: url(buttons/images/colorbgclear-active.gif) }
+div.html-editor div.toolbar button.resetbackcolor:active { background: url(buttons/images/colorbgclear-active.gif) }
 
-div.html-editor-container div.toolbar button.removeformat { background: url(buttons/images/unformat-inactive.gif) }
+div.html-editor div.toolbar button.removeformat { background: url(buttons/images/unformat-inactive.gif) }
 
-div.html-editor-container div.toolbar button.removeformat:active { background: url(buttons/images/unformat-active.gif) }
+div.html-editor div.toolbar button.removeformat:active { background: url(buttons/images/unformat-active.gif) }
 
-div.html-editor-container div.toolbar ul li.size { padding-left:4px; }
+div.html-editor div.toolbar ul li.size { padding-left:4px; }
 
-div.html-editor-container div.toolbar ul li.font { padding-left:4px;}
+div.html-editor div.toolbar ul li.font { padding-left:4px;}
 
-div.html-editor-container div.toolbar button.cut { background: url(buttons/images/cut-inactive.gif) }
+div.html-editor div.toolbar button.cut { background: url(buttons/images/cut-inactive.gif) }
 
-div.html-editor-container div.toolbar button.cut:active { background: url(buttons/images/cut-active.gif) }
+div.html-editor div.toolbar button.cut:active { background: url(buttons/images/cut-active.gif) }
 
-div.html-editor-container div.toolbar button.design { background: url(buttons/images/design-inactive.gif) }
+div.html-editor div.toolbar button.design { background: url(buttons/images/design-inactive.gif) }
 
-div.html-editor-container div.toolbar button.design.active { background: url(buttons/images/design-active.gif) }
+div.html-editor div.toolbar button.design.active { background: url(buttons/images/design-active.gif) }
 
-div.html-editor-container div.toolbar button.html { background: url(buttons/images/html-inactive.gif) }
+div.html-editor div.toolbar button.html { background: url(buttons/images/html-inactive.gif) }
 
-div.html-editor-container div.toolbar button.html.active { background: url(buttons/images/html-active.gif) }
+div.html-editor div.toolbar button.html.active { background: url(buttons/images/html-active.gif) }
 
-div.html-editor-container div.toolbar button.preview { background: url(buttons/images/preview-inactive.gif) }
+div.html-editor div.toolbar button.preview { background: url(buttons/images/preview-inactive.gif) }
 
-div.html-editor-container div.toolbar button.preview.active { background: url(buttons/images/preview-active.gif) }
+div.html-editor div.toolbar button.preview.active { background: url(buttons/images/preview-active.gif) }
 
-div.html-editor-container div.toolbar button.copy { background: url(buttons/images/copy-inactive.gif) }
+div.html-editor div.toolbar button.copy { background: url(buttons/images/copy-inactive.gif) }
 
-div.html-editor-container div.toolbar button.copy:active { background: url(buttons/images/copy-active.gif) }
+div.html-editor div.toolbar button.copy:active { background: url(buttons/images/copy-active.gif) }
 
-div.html-editor-container div.toolbar button.paste { background: url(buttons/images/paste-inactive.gif) }
+div.html-editor div.toolbar button.paste { background: url(buttons/images/paste-inactive.gif) }
 
-div.html-editor-container div.toolbar button.paste:active { background: url(buttons/images/paste-active.gif) }
+div.html-editor div.toolbar button.paste:active { background: url(buttons/images/paste-active.gif) }
 
-div.html-editor-container div.toolbar button.pastetext { background: url(buttons/images/pastetext-inactive.gif) }
+div.html-editor div.toolbar button.pastetext { background: url(buttons/images/pastetext-inactive.gif) }
 
-div.html-editor-container div.toolbar button.pastetext:active { background: url(buttons/images/pastetext-active.gif) }
+div.html-editor div.toolbar button.pastetext:active { background: url(buttons/images/pastetext-active.gif) }
 
-div.html-editor-container div.toolbar button.pasteword { background: url(buttons/images/pasteword-inactive.gif) }
+div.html-editor div.toolbar button.pasteword { background: url(buttons/images/pasteword-inactive.gif) }
 
-div.html-editor-container div.toolbar button.pasteword:active { background: url(buttons/images/pasteword-active.gif) }
+div.html-editor div.toolbar button.pasteword:active { background: url(buttons/images/pasteword-active.gif) }
 
-div.html-editor-container div.toolbar button.indent { background: url(buttons/images/indentmore-inactive.gif) }
+div.html-editor div.toolbar button.indent { background: url(buttons/images/indentmore-inactive.gif) }
 
-div.html-editor-container div.toolbar button.indent:active { background: url(buttons/images/indentmore-active.gif) }
+div.html-editor div.toolbar button.indent:active { background: url(buttons/images/indentmore-active.gif) }
 
-div.html-editor-container div.toolbar button.outdent { background: url(buttons/images/indentless-inactive.gif) }
+div.html-editor div.toolbar button.outdent { background: url(buttons/images/indentless-inactive.gif) }
 
-div.html-editor-container div.toolbar button.outdent:active { background: url(buttons/images/indentless-active.gif) }
+div.html-editor div.toolbar button.outdent:active { background: url(buttons/images/indentless-active.gif) }
 
-div.html-editor-container div.toolbar button.paragraph { background: url(buttons/images/formatparagraph-inactive.gif) }
+div.html-editor div.toolbar button.paragraph { background: url(buttons/images/formatparagraph-inactive.gif) }
 
-div.html-editor-container div.toolbar button.paragraph.active { background: url(buttons/images/formatparagraph-active.gif) }
+div.html-editor div.toolbar button.paragraph.active { background: url(buttons/images/formatparagraph-active.gif) }
 
-div.html-editor-container div.toolbar button.justifyleft { background: url(buttons/images/alignleft-inactive.gif) }
+div.html-editor div.toolbar button.justifyleft { background: url(buttons/images/alignleft-inactive.gif) }
 
-div.html-editor-container div.toolbar button.justifyleft.active { background: url(buttons/images/alignleft-active.gif) }
+div.html-editor div.toolbar button.justifyleft.active { background: url(buttons/images/alignleft-active.gif) }
 
-div.html-editor-container div.toolbar button.justifycenter { background: url(buttons/images/aligncenter-inactive.gif) }
+div.html-editor div.toolbar button.justifycenter { background: url(buttons/images/aligncenter-inactive.gif) }
 
-div.html-editor-container div.toolbar button.justifycenter.active { background: url(buttons/images/aligncenter-active.gif) }
+div.html-editor div.toolbar button.justifycenter.active { background: url(buttons/images/aligncenter-active.gif) }
 
-div.html-editor-container div.toolbar button.justifyright { background: url(buttons/images/alignright-inactive.gif) }
+div.html-editor div.toolbar button.justifyright { background: url(buttons/images/alignright-inactive.gif) }
 
-div.html-editor-container div.toolbar button.justifyright.active { background: url(buttons/images/alignright-active.gif) }
+div.html-editor div.toolbar button.justifyright.active { background: url(buttons/images/alignright-active.gif) }
 
-div.html-editor-container div.toolbar button.justifyfull { background: url(buttons/images/alignjustify-inactive.gif) }
+div.html-editor div.toolbar button.justifyfull { background: url(buttons/images/alignjustify-inactive.gif) }
 
-div.html-editor-container div.toolbar button.justifyfull.active { background: url(buttons/images/alignjustify-active.gif) }
+div.html-editor div.toolbar button.justifyfull.active { background: url(buttons/images/alignjustify-active.gif) }
 
-div.html-editor-container div.toolbar button.justifyreset { background: url(buttons/images/alignremove-inactive.gif) }
+div.html-editor div.toolbar button.justifyreset { background: url(buttons/images/alignremove-inactive.gif) }
 
-div.html-editor-container div.toolbar button.justifyreset.active { background: url(buttons/images/alignremove-active.gif) }
+div.html-editor div.toolbar button.justifyreset.active { background: url(buttons/images/alignremove-active.gif) }
 
-div.html-editor-container div.toolbar button.orderedlist { background: url(buttons/images/listnum-inactive.gif) }
+div.html-editor div.toolbar button.orderedlist { background: url(buttons/images/listnum-inactive.gif) }
 
-div.html-editor-container div.toolbar button.orderedlist:active { background: url(buttons/images/listnum-active.gif) }
+div.html-editor div.toolbar button.orderedlist:active { background: url(buttons/images/listnum-active.gif) }
 
-div.html-editor-container div.toolbar button.unorderedlist { background: url(buttons/images/listbullet-inactive.gif) }
+div.html-editor div.toolbar button.unorderedlist { background: url(buttons/images/listbullet-inactive.gif) }
 
-div.html-editor-container div.toolbar button.unorderedlist:active { background: url(buttons/images/listbullet-active.gif) }
+div.html-editor div.toolbar button.unorderedlist:active { background: url(buttons/images/listbullet-active.gif) }
 
-div.html-editor-container div.toolbar button.horizontalrule { background: url(buttons/images/rule-inactive.gif) }
+div.html-editor div.toolbar button.horizontalrule { background: url(buttons/images/rule-inactive.gif) }
 
-div.html-editor-container div.toolbar button.horizontalrule:active { background: url(buttons/images/rule-active.gif) }
+div.html-editor div.toolbar button.horizontalrule:active { background: url(buttons/images/rule-active.gif) }
 
-div.html-editor-container div.toolbar button.link { background: url(buttons/images/link-inactive.gif) }
+div.html-editor div.toolbar button.link { background: url(buttons/images/link-inactive.gif) }
 
-div.html-editor-container div.toolbar button.link:active { background: url(buttons/images/link-active.gif) }
+div.html-editor div.toolbar button.link:active { background: url(buttons/images/link-active.gif) }
 
-div.html-editor-container div.toolbar button.unlink { background: url(buttons/images/unlink-inactive.gif) }
+div.html-editor div.toolbar button.unlink { background: url(buttons/images/unlink-inactive.gif) }
 
-div.html-editor-container div.toolbar button.unlink:active { background: url(buttons/images/unlink-active.gif) }
+div.html-editor div.toolbar button.unlink:active { background: url(buttons/images/unlink-active.gif) }

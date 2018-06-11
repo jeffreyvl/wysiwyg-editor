@@ -1,25 +1,28 @@
 import sanitizeHtml = require('sanitize-html');
 export class HTMLParsing {
 
-    static allowedTags: string[] = ["div","span", "strong", "em", "u", "strike", "sub", "sup","font","p"];
-    
-      static allowedAttributes: any = {
-        "*" : ["href", "target", , "shape","color", "face", "size", "style"]
-      };
-    
-      static allowedStyles: any = {
+    static allowedTags: string[] = ["div", "span", "strong", "em", "u", "strike", "sub", "sup", "font", "p"];
+
+    static allowedAttributes: any = {
+        "*": ["href", "target", , "shape", "color", "face", "size", "style"]
+    };
+
+    static allowedStyles: any = {
         "*": {
-          "direction": [/^.*$/],
-          "margin-left": [/^.*$/],
-          "margin-right": [/^.*$/],
-          "text-align": [/^.*$/],
-          "background-color": [/^.*$/]
-        }};
-    
-    static clean(html:string):string {
-        return sanitizeHtml(html, { allowedTags: HTMLParsing.allowedTags, 
-                                    allowedAttributes: HTMLParsing.allowedAttributes,
-                                    allowedStyles: HTMLParsing.allowedStyles});
+            "direction": [/^.*$/],
+            "margin-left": [/^.*$/],
+            "margin-right": [/^.*$/],
+            "text-align": [/^.*$/],
+            "background-color": [/^.*$/]
+        }
+    };
+
+    static clean(html: string): string {
+        return sanitizeHtml(html, {
+            allowedTags: HTMLParsing.allowedTags,
+            allowedAttributes: HTMLParsing.allowedAttributes,
+            allowedStyles: HTMLParsing.allowedStyles
+        });
     }
     static castNodeToHTMLElement(node: Node): HTMLElement {
         if (node !== undefined && node.nodeType === 1) {
@@ -29,58 +32,37 @@ export class HTMLParsing {
     }
 
     static groupChildNodes(node: Node, elementsToGroup: string[], elementsToBreakAfter: string[] = ["br"],
-        elementsToRemove: string[] = ["br"], keepTextOnly: boolean = false): Node[][] {
+        elementsToRemove: string[] = ["br"]): Node[][] {
         let groups: Node[][] = [];
         let group: Node[] = [];
         let j: number = 0;
         $(node).contents().each((index, element) => {
-            if (elementsToBreakAfter.indexOf(element.nodeName.toLowerCase()) !== -1) {
-                if (elementsToRemove.indexOf(element.nodeName.toLowerCase()) === -1) {
+
+            if (element.nodeType === 3) {
+                if (element.textContent.trim().length > 0) {
                     group.push(element);
                 }
+                return;
+            }
+            if (elementsToBreakAfter.indexOf(element.nodeName.toLowerCase()) === -1 && elementsToGroup.indexOf(element.nodeName.toLowerCase()) === -1) {
                 if (group.length > 0) {
                     groups.push(group);
                     group = [];
                 }
-            } else if (element.nodeType !== 3 && elementsToGroup.indexOf(element.nodeName.toLowerCase()) === -1) {
-                if (group.length === 0) {
+            }
+            if (elementsToRemove.indexOf(element.nodeName.toLowerCase()) === -1) {
+                group.push(element);
+            }
+            if (elementsToBreakAfter.indexOf(element.nodeName.toLowerCase()) !== -1 || elementsToGroup.indexOf(element.nodeName.toLowerCase()) === -1) {
+                if (group.length > 0) {
                     groups.push(group);
                     group = [];
-                }
-                if (elementsToRemove.indexOf(element.nodeName.toLowerCase()) === -1) {
-                    if (keepTextOnly) {
-                        $(element).contents().each((index, el) => {
-                            if (el.nodeType === 1) {
-                                HTMLParsing.groupChildNodes(el, elementsToGroup, elementsToBreakAfter,
-                                    elementsToRemove, keepTextOnly).forEach(
-                                        subgroup => {
-                                            subgroup.forEach(el => group.push(el));
-                                            if (group.length === 0) {
-                                                groups.push(group);
-                                                group = [];
-                                            }
-                                        }
-                                    );
-                            } else {
-                                group.push(el);
-                            }
-                        });
-                    } else {
-                        group.push(element);
-                    }
-                }
-                if (group.length === 0) {
-                    groups.push(group);
-                    group = [];
-                }
-            } else {
-                if (elementsToRemove.indexOf(element.nodeName.toLowerCase()) === -1) {
-                    group.push(element);
                 }
             }
         });
         if (group.length > 0) {
             groups.push(group);
+            group = [];
         }
         return groups;
     }
@@ -234,7 +216,7 @@ export class HTMLParsing {
         return value;
     }
 
-    static removePropertyIfDefaultValue(value: string, defaultValues:string[]): string {
+    static removePropertyIfDefaultValue(value: string, defaultValues: string[]): string {
         if (defaultValues.indexOf(value) !== -1) {
             return "";
         }
@@ -249,7 +231,7 @@ export class HTMLParsing {
         HTMLParsing.cleanUpHTML(node);
     }
 
-    static cleanUpHTML(node :Node):void {
+    static cleanUpHTML(node: Node): void {
         HTMLParsing.removeDefaultCSS(node);
         HTMLParsing.cleanUpTag(node, ["span"]);
         HTMLParsing.cleanUpTag(node, ["div"], undefined, true);
